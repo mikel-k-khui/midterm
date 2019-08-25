@@ -1,9 +1,9 @@
 DELETE FROM users;
 DELETE FROM list;
-DELETE FROM item;
+DELETE FROM task;
 DELETE FROM users_lists;
 
-INSERT INTO users (name, email, password, created_at)
+INSERT INTO users (full_name, email, password, created_at)
 VALUES ('Bart Simpson', 'bart@simpson.s', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2019-02-12T08:06:00.000Z'),
 ('Stever Rogers', 'captain@avengers.org', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2018-03-12T08:06:00.000Z'),
 ('Doctor Stephen Strange', 'sanctum@sancto.rum', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2018-04-12T08:06:00.000Z'),
@@ -18,7 +18,7 @@ VALUES ('Bart Simpson', 'bart@simpson.s', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.J
 ('Irene Vega', 'reaganshaffer@live.com', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2018-02-15T08:06:00.000Z'),
 ('Georgie Sutton', 'alexandraellis@inbox.com', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2019-02-12T08:06:00.000Z');
 
-INSERT INTO lists (name)
+INSERT INTO list (name, category)
 VALUES ('To buy', 'buy'),
 ('To eat', 'eat'),
 ('To watch', 'watch'),
@@ -43,7 +43,7 @@ VALUES ('To buy', 'buy'),
 INSERT INTO users_lists (created_by, user_id, list_id)
 VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,6,6),(7,7,7),(8,8,8),(9,9,9),(10,10,10),(11,11,11),(12,12,12),(13,13,13),(1,1,14),(2,2,15),(3,3,16),(4,4,17),(5,5,18),(6,6,19),(7,7,20);
 
-INSERT INTO tasks (list_id, last_modified, description)
+INSERT INTO task (list_id, last_modified, description)
 VALUES (1,'2019-03-12T08:06:00.000Z','Harry Potter theme park'),
 (2,'2019-03-12T08:06:00.000Z','Star Wars themed cookies'),
 (3,'2019-03-12T08:06:00.000Z','Star Wars Episode III'),

@@ -25,7 +25,7 @@ module.exports = (db) => {
   router.get("/:userid", (req, res) => {
     const userID = req.params.userid;
     const categories = ['eat', 'buy', 'read', 'watch'];
-    const queryString = 'SELECT tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 ORDER BY category;';
+    const queryString = 'SELECT tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 ORDER BY tasks.last_modified DESC;';
     let eatArr = [];
     let buyArr = [];
     let readArr = [];

@@ -47,12 +47,17 @@ app.use("/api/users", usersRoutes(db));
 // Warning: avoid creating more routes in this file!
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
-  res.render("index");
+  const user = { full_name: 'stuff' };//CHANGE ME WHEN USING COOKIES
+  const templateVars = {
+    user: user
+  };
+  res.render('index', templateVars);
+
 });
 
-app.get("/:user_id", (req, res) => {
-  res.render("index");
-});
+// app.get("/:user_id", (req, res) => {
+//   res.render("index");
+// });
 
 app.get("/:user_id/:list", (req, res) => {
   res.render("index");

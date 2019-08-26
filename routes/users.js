@@ -36,9 +36,7 @@ module.exports = (db) => {
         const templateVars = {
           user: user
         };
-        // console.log(user);
         res.render('index', templateVars);
-        // res.json({ user });
       })
       .catch(err => {
         res

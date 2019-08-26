@@ -59,6 +59,12 @@ app.get("/:user_id/:list", (req, res) => {
   console.log("Display list!");
 });
 
+// add new tasks to a user's list(s)
+app.post("/:user_id/add-task", (req, res) => {
+  console.log("In the Post route");
+  usersRoutes(db);
+});
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}`);
 });

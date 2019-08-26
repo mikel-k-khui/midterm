@@ -18,7 +18,7 @@
   </head>
 
   <body>
-<div class="container grid-lg">
+<main class="container grid-lg">
     <header class="navbar">
       <section class="navbar-section">
         <a href="..." class="navbar-brand mr-2">Listify</a>
@@ -43,45 +43,10 @@
       </div>
       <button class="btn btn-primary">Add</button>
     </div>
-  </div>
+    </div>
 
-  <div class="container grid-lg">
-    <div class="columns">
-      <div class="column col-xl-12">
-        <h2>To Watch</h2>
-        <ul>
-          <li><a href="#">Star Wars</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-          <li><a href="#">Star Trek</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-          <li><a href="#">Iron Man</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-        </ul>
-      </div>
-      <div class="column col-xl-12">
-        <h2>To Eat</h2>
-        <ul>
-            <li><a href="#">Calgary Tower Restaurant</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-            <li><a href="#">A & W</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-          </ul>
-      </div>
-        <div class="column col-xl-12">
-          <h2>To Read</h2>
-          <ul>
-              <li><a href="#">Hunger Gaames</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">The Da Vinci Code</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">Tom Clancy</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-            </ul>
-        </div>
-        <div class="column col-xl-12">
-          <h2>To Buy</h2>
-          <ul>
-              <li><a href="#">Cookies</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">iPhone</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">MacBook Pro</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">Dog food</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-            </ul>
-        </div>
-      </div>
-
-  </div>
+    <% include partials/_listedItems %>
+  </main>
 
   </body>
   </html>

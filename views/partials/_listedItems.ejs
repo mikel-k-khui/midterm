@@ -1,36 +1,50 @@
-<div class="container grid-lg">
+<section class="container grid-lg to-do-items">
     <div class="columns">
       <div class="column col-xl-12">
-        <h2>To Watch</h2>
-        <ul>
-          <li><a href="#">Star Wars</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-          <li><a href="#">Star Trek</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-          <li><a href="#">Iron Man</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-        </ul>
+          <h3>To Eat</h3>
+          <% if (eats.length > 0) { %>
+            <ul class="eats">
+           <% for (let eat of eats) { %>
+            <li><%= eat.description %>  <span><%= eat.last_modified  %></span></li>
+            <% } %>
+            </ul>
+            <% } else { %>
+            <p>No items!</p>
+            <% } %>
       </div>
       <div class="column col-xl-12">
-        <h2>To Eat</h2>
-        <ul>
-            <li><a href="#">Calgary Tower Restaurant</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-            <li><a href="#">A & W</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-          </ul>
-      </div>
-        <div class="column col-xl-12">
-          <h2>To Read</h2>
-          <ul>
-              <li><a href="#">Hunger Gaames</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">The Da Vinci Code</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">Tom Clancy</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
+          <h3>To Buy</h3>
+          <% if (buys.length > 0) { %>
+            <ul class="buys">
+           <% for (let buy of buys) { %>
+            <li><%= buy.description %>  <span><%= buy.last_modified  %></span></li>
+            <% } %>
             </ul>
-        </div>
-        <div class="column col-xl-12">
-          <h2>To Buy</h2>
-          <ul>
-              <li><a href="#">Cookies</a> <span>1 day ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">iPhone</a> <span>2 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">MacBook Pro</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-              <li><a href="#">Dog food</a> <span>3 days ago</span> <a href="#" class="btn">...</a></li>
-            </ul>
-        </div>
+            <% } else { %>
+            <p>No items!</p>
+            <% } %>
       </div>
-</div>
+      <div class="column col-xl-12">
+          <h3>To Read</h3>
+          <% if (reads.length > 0) { %>
+            <ul class="reads">
+           <% for (let read of reads) { %>
+            <li><%= read.description %>  <span><%= read.last_modified  %></span></li>
+            <% } %>
+            </ul>
+            <% } else { %>
+            <p>No items!</p>
+            <% } %>
+      <div class="column col-xl-12">
+          <h3>To Watch</h3>
+          <% if (watches.length > 0) { %>
+            <ul class="watches">
+           <% for (let watch of watches) { %>
+            <li><%= watch.description %>  <span><%= watch.last_modified  %></span></li>
+            <% } %>
+            </ul>
+            <% } else { %>
+            <p>No items!</p>
+            <% } %>
+      </div>
+    </section>

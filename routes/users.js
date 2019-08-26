@@ -22,27 +22,39 @@ module.exports = (db) => {
       });
   });
 
-  // set cookie when logging in; to be implemented later
-  // router.get('/login/:id', (req, res) => {
-  //   req.session.user_id = req.params.id;
-  //   res.redirect('/');
-  // });
-
   router.get("/:userid", (req, res) => {
     const userID = req.params.userid;
-    db.query('SELECT * FROM users WHERE id = $1;', [userID])
-      .then(data => {
-        const user = data.rows[0];
-        const templateVars = {
-          user: user
-        };
-        res.render('index', templateVars);
-      })
-      .catch(err => {
-        res
-          .status(500)
-          .json({ error: err.message });
-      });
+    const categories = ['eat', 'buy', 'read', 'watch'];
+    const queryString = 'SELECT tasks.description, tasks.category, to_char(tasks.last_modified, \'DD Mon YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 ORDER BY category;';
+    let eatArr = [];
+    let buyArr = [];
+    let readArr = [];
+    let watchArr = [];
+    const eat = db.query(queryString, [userID, categories[0]])
+      .then(res => eatArr = res.rows);
+    const buy = db.query(queryString, [userID, categories[1]])
+      .then(res => buyArr = res.rows);
+    const read = db.query(queryString, [userID, categories[2]])
+      .then(res => readArr = res.rows);
+    const watch = db.query(queryString, [userID, categories[3]])
+      .then(res => watchArr = res.rows);
+
+    Promise.all([eat, buy, read, watch]).then(() => {
+      const templateVars = {
+        user: userID,
+        eats: eatArr,
+        buys: buyArr,
+        reads: readArr,
+        watches: watchArr
+      };
+        // console.log(templateVars);
+      res.render('index', templateVars);
+    }).catch(err => {
+      res
+        .status(500)
+        .json({ error: err.message });
+    });
+
   });
 
   return router;

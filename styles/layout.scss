@@ -1,9 +1,26 @@
 // See: https://sass-lang.com/
 
+/* Global color definitions */
+:root {
+  --beige: #f4f1ec;
+  --grey: #807d76;
+  --dark-blue: #4056a1;
+}
+
 body {
-  background-color: #EEE;
+  background-color: var(--beige);
 
   h1 {
-    color: #244751;
+    color: var(--dark-blue);
+  }
+}
+
+.to-do-items {
+  ul {
+    span {
+      color: var(--grey);
+      font-size: 0.8em;
+      margin-left: 1em;
+    }
   }
 }

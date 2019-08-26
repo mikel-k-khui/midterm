@@ -1,7 +1,5 @@
 DELETE FROM users;
-DELETE FROM list;
-DELETE FROM task;
-DELETE FROM users_lists;
+DELETE FROM tasks;
 
 INSERT INTO users (full_name, email, password, created_at)
 VALUES ('Bart Simpson', 'bart@simpson.s', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2019-02-12T08:06:00.000Z'),
@@ -18,52 +16,28 @@ VALUES ('Bart Simpson', 'bart@simpson.s', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.J
 ('Irene Vega', 'reaganshaffer@live.com', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2018-02-15T08:06:00.000Z'),
 ('Georgie Sutton', 'alexandraellis@inbox.com', '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.', '2019-02-12T08:06:00.000Z');
 
-INSERT INTO list (name, category)
-VALUES ('To buy', 'buy'),
-('To eat', 'eat'),
-('To watch', 'watch'),
-('To read', 'read'),
- ('To buy', 'buy'),
-('To eat', 'eat'),
-('To watch', 'watch'),
-('To read', 'read'),
-('To buy', 'buy'),
-('To eat', 'eat'),
-('To watch', 'watch'),
-('To read', 'read'),
- ('To buy', 'buy'),
-('To eat', 'eat'),
-('To watch', 'watch'),
-('To read', 'read'),
- ('To buy', 'buy'),
-('To eat', 'eat'),
-('To watch', 'watch'),
-('To read', 'read');
 
-INSERT INTO users_lists (created_by, user_id, list_id)
-VALUES (1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5),(6,6,6),(7,7,7),(8,8,8),(9,9,9),(10,10,10),(11,11,11),(12,12,12),(13,13,13),(1,1,14),(2,2,15),(3,3,16),(4,4,17),(5,5,18),(6,6,19),(7,7,20);
-
-INSERT INTO task (list_id, last_modified, description)
-VALUES (1,'2019-03-12T08:06:00.000Z','Harry Potter theme park'),
-(2,'2019-03-12T08:06:00.000Z','Star Wars themed cookies'),
-(3,'2019-03-12T08:06:00.000Z','Star Wars Episode III'),
-(4,'2019-03-12T08:06:00.000Z','Star Wars Episode III'),
-(5,'2019-03-12T08:06:00.000Z','Hobbit'),
-(6,'2019-03-12T08:06:00.000Z','Home made smoked meat'),
-(7,'2019-07-12T08:06:00.000Z','Hobbit'),
-(8,'2019-07-12T08:06:00.000Z','Hobbit'),
-(9,'2019-07-12T08:06:00.000Z','Harry Potter theme park'),
-(10,'2019-07-12T08:06:00.000Z','Harry Potter theme park'),
-(11,'2019-07-12T08:06:00.000Z','Harry Potter theme park'),
-(12,'2019-07-12T08:06:00.000Z','Harry Potter theme park'),
-(13,'2019-07-12T08:06:00.000Z','Action figures'),
-(14,'2019-07-12T08:06:00.000Z','Chocolate'),
-(15,'2019-07-12T08:06:00.000Z','How to get away with murder'),
-(16,'2019-07-12T08:06:00.000Z','Hungar Games'),
-(17,'2019-07-12T08:06:00.000Z','Present for mom'),
-(18,'2019-07-12T08:06:00.000Z','Tacos at Extreme Tacos'),
-(1,'2019-07-12T08:06:00.000Z','Harry Potter theme park'),
-(2,'2019-07-12T08:06:00.000Z','Poems by the artist at the poetry last thursday'),
-(3,'2019-07-12T08:06:00.000Z','Lightsaber'),
-(4,'2019-07-12T08:06:00.000Z','Chinese buffet at chinatown'),
-(5,'2019-07-12T08:06:00.000Z','Stranger Things');
+INSERT INTO tasks (user_id, last_modified, description, category)
+VALUES (1,'2019-03-12T08:06:00.000Z','Harry Potter theme park', 'eat'),
+(1,'2019-03-12T08:06:00.000Z','Star Wars themed cookies', 'eat'),
+(1,'2019-03-12T08:06:00.000Z','Star Wars Episode III', 'watch'),
+(1,'2019-03-12T08:06:00.000Z','Star Wars Episode III: The Book', 'read'),
+(1,'2019-03-12T08:06:00.000Z','Hobbit', 'read'),
+(1,'2019-03-12T08:06:00.000Z','Home made smoked meat', 'eat'),
+(1,'2019-07-12T08:06:00.000Z','Hobbit: Part 1', 'watch'),
+(1,'2019-07-12T08:06:00.000Z','The Hobbit', 'read'),
+(1,'2019-07-12T08:06:00.000Z','Harry Potter', 'watch'),
+(1,'2019-07-12T08:06:00.000Z','Harry Potter', 'read'),
+(1,'2019-07-12T08:06:00.000Z','Harry Potter Theme Park Tickets', 'buy'),
+(2,'2019-07-12T08:06:00.000Z','Harry Potter Restaurant', 'eat'),
+(2,'2019-07-12T08:06:00.000Z','Action figures', 'buy'),
+(2,'2019-07-12T08:06:00.000Z','Chocolate', 'eat'),
+(2,'2019-07-12T08:06:00.000Z','How to get away with murder', 'read'),
+(2,'2019-07-12T08:06:00.000Z','Hunger Games', 'read'),
+(2,'2019-07-12T08:06:00.000Z','Present for mom', 'buy'),
+(3,'2019-07-12T08:06:00.000Z','Tacos at Extreme Tacos', 'eat'),
+(3,'2019-07-12T08:06:00.000Z','Harry Potter theme park tickets', 'buy'),
+(3,'2019-07-12T08:06:00.000Z','Poems by the artist at the poetry last thursday', 'read'),
+(3,'2019-07-12T08:06:00.000Z','Lightsaber', 'buy'),
+(4,'2019-07-12T08:06:00.000Z','Chinese buffet at chinatown', 'eat'),
+(5,'2019-07-12T08:06:00.000Z','Stranger Things', 'watch');

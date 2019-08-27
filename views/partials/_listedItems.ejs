@@ -1,8 +1,8 @@
 <section class="columns to-do-items">
-<div class="column col-3 col-md-12">
-    <h3>To Eat</h3>
+<div class="column col-3 col-md-12 to-eat">
+    <h3>To Eat <i class="fas fa-utensils"></i></h3>
     <% if (eats.length > 0) { %>
-      <ul class="eats">
+      <ul>
       <% for (let eat of eats) { %>
       <li><%= eat.description %>  <span><%= eat.last_modified  %></span></li>
       <% } %>
@@ -11,10 +11,10 @@
       <p>No items!</p>
       <% } %>
 </div>
-<div class="column col-3 col-md-12">
-    <h3>To Buy</h3>
+<div class="column col-3 col-md-12 to-buy">
+    <h3>To Buy <i class="fas fa-shopping-cart"></i></h3>
     <% if (buys.length > 0) { %>
-      <ul class="buys">
+      <ul>
       <% for (let buy of buys) { %>
       <li><%= buy.description %>  <span><%= buy.last_modified  %></span></li>
       <% } %>
@@ -23,10 +23,10 @@
       <p>No items!</p>
       <% } %>
 </div>
-<div class="column col-3 col-md-12">
-    <h3>To Read</h3>
+<div class="column col-3 col-md-12 to-read">
+    <h3>To Read <i class="fas fa-book"></i></h3>
     <% if (reads.length > 0) { %>
-      <ul class="reads">
+      <ul>
       <% for (let read of reads) { %>
       <li><%= read.description %>  <span><%= read.last_modified  %></span></li>
       <% } %>
@@ -35,10 +35,10 @@
       <p>No items!</p>
       <% } %>
 </div>
-<div class="column col-3 col-md-12">
-    <h3>To Watch</h3>
+<div class="column col-3 col-md-12 to-watch">
+    <h3>To Watch <i class="fas fa-video"></i></h3>
     <% if (watches.length > 0) { %>
-      <ul class="watches">
+      <ul>
       <% for (let watch of watches) { %>
       <li><%= watch.description %>  <span><%= watch.last_modified  %></span></li>
       <% } %>

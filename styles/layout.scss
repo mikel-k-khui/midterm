@@ -5,6 +5,10 @@
   --beige: #f4f1ec;
   --grey: #807d76;
   --dark-blue: #4056a1;
+  --to-watch: 240;
+  --to-buy: 120;
+  --to-eat: 15;
+  --to-read: 315;
 }
 
 body {
@@ -21,6 +25,32 @@ body {
       color: var(--grey);
       font-size: 0.8em;
       margin-left: 1em;
+    }
+  }
+  h3 {
+    border-bottom: 5px solid;
+  }
+  h3 i {
+    float: right;
+  }
+  .to-watch {
+    h3 {
+      color: hsl(var(--to-watch), 50%, 70%);
+    }
+  }
+  .to-read {
+    h3 {
+      color: hsl(var(--to-read), 70%, 50%);
+    }
+  }
+  .to-eat {
+    h3 {
+      color: hsl(var(--to-eat), 90%, 45%);
+    }
+  }
+  .to-buy {
+    h3 {
+      color: hsl(var(--to-buy), 50%, 50%);
     }
   }
 }

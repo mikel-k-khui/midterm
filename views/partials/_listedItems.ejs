@@ -1,50 +1,50 @@
-<section class="container grid-lg to-do-items">
-    <div class="columns">
-      <div class="column col-xl-12">
-          <h3>To Eat</h3>
-          <% if (eats.length > 0) { %>
-            <ul class="eats">
-           <% for (let eat of eats) { %>
-            <li><%= eat.description %>  <span><%= eat.last_modified  %></span></li>
-            <% } %>
-            </ul>
-            <% } else { %>
-            <p>No items!</p>
-            <% } %>
-      </div>
-      <div class="column col-xl-12">
-          <h3>To Buy</h3>
-          <% if (buys.length > 0) { %>
-            <ul class="buys">
-           <% for (let buy of buys) { %>
-            <li><%= buy.description %>  <span><%= buy.last_modified  %></span></li>
-            <% } %>
-            </ul>
-            <% } else { %>
-            <p>No items!</p>
-            <% } %>
-      </div>
-      <div class="column col-xl-12">
-          <h3>To Read</h3>
-          <% if (reads.length > 0) { %>
-            <ul class="reads">
-           <% for (let read of reads) { %>
-            <li><%= read.description %>  <span><%= read.last_modified  %></span></li>
-            <% } %>
-            </ul>
-            <% } else { %>
-            <p>No items!</p>
-            <% } %>
-      <div class="column col-xl-12">
-          <h3>To Watch</h3>
-          <% if (watches.length > 0) { %>
-            <ul class="watches">
-           <% for (let watch of watches) { %>
-            <li><%= watch.description %>  <span><%= watch.last_modified  %></span></li>
-            <% } %>
-            </ul>
-            <% } else { %>
-            <p>No items!</p>
-            <% } %>
-      </div>
-    </section>
+<section class="columns to-do-items">
+<div class="column col-3 col-md-12">
+    <h3>To Eat</h3>
+    <% if (eats.length > 0) { %>
+      <ul class="eats">
+      <% for (let eat of eats) { %>
+      <li><%= eat.description %>  <span><%= eat.last_modified  %></span></li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>
+<div class="column col-3 col-md-12">
+    <h3>To Buy</h3>
+    <% if (buys.length > 0) { %>
+      <ul class="buys">
+      <% for (let buy of buys) { %>
+      <li><%= buy.description %>  <span><%= buy.last_modified  %></span></li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>
+<div class="column col-3 col-md-12">
+    <h3>To Read</h3>
+    <% if (reads.length > 0) { %>
+      <ul class="reads">
+      <% for (let read of reads) { %>
+      <li><%= read.description %>  <span><%= read.last_modified  %></span></li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>
+<div class="column col-3 col-md-12">
+    <h3>To Watch</h3>
+    <% if (watches.length > 0) { %>
+      <ul class="watches">
+      <% for (let watch of watches) { %>
+      <li><%= watch.description %>  <span><%= watch.last_modified  %></span></li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>
+</section>

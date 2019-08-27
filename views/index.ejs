@@ -11,46 +11,42 @@
     <link rel="stylesheet" href="/styles/spectre.min.css" type="text/css"/>
     <title>Home Page</title>
 
-
-
     <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
     <script type="text/javascript" src="/scripts/app.js"></script>
   </head>
 
   <body>
-<main class="container grid-lg">
-    <header class="navbar">
-      <section class="navbar-section">
-        <a href="..." class="navbar-brand mr-2">Listify</a>
-      </section>
-      <section class="navbar-section">
-        <!-- <div class="input-group input-inline">
-          <input class="form-input" type="text" placeholder="search">
-          <button class="btn btn-primary input-group-btn">Search</button>
-        </div> -->
-        <% if (user) { %>
-          Welcome, <%= user.full_name %> <a href="#" class="btn btn-link">Logout</a>
-        <% } else { %>
-        <a href="/register" class="btn btn-link">Register</a> <a href="/login" class="btn btn-link">Login</a>
-        <% } %>
-      </section>
-    </header>
+    <main class="container grid-xl">
+
+      <header class="navbar">
+        <section class="navbar-section">
+          <a href="..." class="navbar-brand mr-2">Listify</a>
+        </section>
+        <section class="navbar-section">
+          <% if (user) { %>
+            Welcome, <%= user.full_name %> <a href="#" class="btn btn-link">Logout</a>
+            <% } else { %>
+              <a href="/register" class="btn btn-link">Register</a> <a href="/login" class="btn btn-link">Login</a>
+              <% } %>
+            </section>
+          </header>
 
 
 
-    <!-- form input control -->
-    <div class="column col-12">
-      <div class="form-group">
-        <label class="form-label" for="item-to-add"><h1>Add a new item</h1></label>
-        <input class="form-input" type="text" id="item-to-add" placeholder="To …">
-      </div>
-      <button class="btn btn-primary">Add</button>
-    </div>
-    </div>
+          <!-- form input control -->
+          <section class="column col-12">
+            <div class="form-group">
+              <label class="form-label" for="item-to-add"><h1>Add a new item</h1></label>
+              <input class="form-input" type="text" id="item-to-add" placeholder="To …">
+            </div>
+            <button class="btn btn-primary">Add</button>
+          </section>
 
-    <% include partials/_listedItems %>
-  </main>
 
+
+            <% include partials/_listedItems %>
+
+        </main>
   </body>
   </html>
 

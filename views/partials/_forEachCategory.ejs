@@ -1,0 +1,11 @@
+<% for (let data in datas) { %>
+  <div class="column col-6 col-sm-12 to-eat">
+        <h3>To <%= data %> <i class="fas fa-utensils"></i></h3>
+  <%  console.log('datas[data]', datas[data]);
+  console.log('data', data);
+    for (let singleitem of datas[data]) {
+      console.log('singleitem', singleitem);
+    } %>
+
+  </div>
+   <%  } %>

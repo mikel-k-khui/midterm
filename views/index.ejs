@@ -55,6 +55,13 @@
 
     <% if (user) { %>
       <% include partials/_listedItems %>
+    <% } else { %>
+    <div class="container grid-lg text-center">
+      <img src="/listify-4-square.png" style="width: 50%; max-width: 300px;" alt="Listify">
+
+      <h2>Welcome to Listify!</h2>
+      <p>We categorize your to-do items so you don’t have to.</p>
+    </div>
     <% } %>
 
 </main>

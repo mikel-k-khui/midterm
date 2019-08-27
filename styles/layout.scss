@@ -2,7 +2,7 @@
 
 /* Global color definitions */
 :root {
-  --beige: #f4f1ec;
+  --beige: #f0f0f0;
   --grey: #807d76;
   --dark-blue: #4056a1;
   --to-watch: 220;
@@ -12,7 +12,7 @@
 }
 
 body {
-  background-color: var(--beige);
+  background-color: var(--beige) !important;
 
   h1 {
     color: var(--dark-blue);

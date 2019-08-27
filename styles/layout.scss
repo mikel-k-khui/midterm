@@ -2,36 +2,58 @@
 
 /* Global color definitions */
 :root {
-  --beige: #f4f1ec;
+  --beige: #f0f0f0;
   --grey: #807d76;
   --dark-blue: #4056a1;
-  --to-watch: 240;
+  --to-watch: 220;
   --to-buy: 120;
   --to-eat: 15;
   --to-read: 315;
 }
 
 body {
-  background-color: var(--beige);
+  background-color: var(--beige) !important;
 
   h1 {
     color: var(--dark-blue);
   }
 }
 
+header .navbar-section h1 img {
+  margin-right: 5px;
+}
+
+.changecat i {
+  margin-left: 5px;
+}
+
 .to-do-items {
-  ul {
+  ul.to-do-item {
+    padding: 0 0.4rem;
+    margin: 0;
+    list-style: none;
     span {
       color: var(--grey);
       font-size: 0.8em;
-      margin-left: 1em;
+      margin-right: 1em;
+    }
+    li.single-item {
+      margin: 0.4rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+    }
+    li:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
     }
   }
   h3 {
     margin: 0 -0.4rem;
-    padding: 0.2rem 0.8rem;
+    padding: 0.5rem 0.8rem;
     color: white;
-    // border-radius: 4px;
   }
   h3 i {
     float: right;
@@ -39,26 +61,34 @@ body {
   }
   .to-watch {
     background-color: hsl(var(--to-watch), 30%, 90%);
-    h3 {
-      background-color: hsl(var(--to-watch), 50%, 70%);
+    h3, .btn.btn-primary {
+      background-color: hsl(var(--to-watch), 50%, 50%);
+      border: none;
     }
   }
   .to-read {
     background-color: hsl(var(--to-read), 30%, 90%);
-    h3 {
-      background-color: hsl(var(--to-read), 70%, 50%);
+    h3, .btn.btn-primary {
+      background-color: hsl(var(--to-read), 60%, 50%);
+      border: none;
     }
   }
   .to-eat {
     background-color: hsl(var(--to-eat), 30%, 90%);
-    h3 {
+    h3, .btn.btn-primary {
       background-color: hsl(var(--to-eat), 90%, 45%);
+      border: none;
     }
   }
   .to-buy {
     background-color: hsl(var(--to-buy), 30%, 90%);
-    h3 {
+    h3, .btn.btn-primary {
       background-color: hsl(var(--to-buy), 50%, 50%);
+      border: none;
     }
   }
+}
+
+.menu-badge i {
+  margin-right: .4rem;
 }

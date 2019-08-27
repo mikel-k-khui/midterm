@@ -173,7 +173,7 @@ app.post("/:user_id/add-task", (req, res) => {
 
   // const user_id = req.session.userId;
   const user_id = 2;
-  const category = 'To eat';
+  const category = 'eat';
   const created_at = new Date(Date.now());
 
   let queryStr = `INSERT INTO tasks (user_id, last_modified, description, category)

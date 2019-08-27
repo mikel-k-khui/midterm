@@ -25,10 +25,14 @@
         </section>
         <section class="navbar-section">
           <% if (user) { %>
-            Welcome, <%= user.full_name %> <a href="#" class="btn btn-link">Logout</a>
+            <% if (user.full_name) { %>
+              Welcome, <%= user.full_name %> <a href="/logout" class="btn btn-link">Logout</a>
             <% } else { %>
-              <a href="/register" class="btn btn-link">Register</a> <a href="/login" class="btn btn-link">Login</a>
-              <% } %>
+              Welcome, <form method="POST" action="/<%= user.id %>"> <button type="submit" class="btn btn-link">update your profile</a></form> <a href="/logout" class="btn btn-link">Logout</a>
+            <% } %>
+          <% } else { %>
+            <a href="/login/2" class="btn btn-link">Login</a>
+          <% } %>
             </section>
           </header>
 
@@ -36,7 +40,7 @@
 
     <!-- form input control -->
     <div class="column col-12">
-      <form method="POST" action="/:user_name/add-task">
+      <form method="POST" action="/user_id/add-task?_method=PUT">
         <div class="form-group">
         <label class="form-label" for="task-to-add"><h1>Add a new item</h1></label>
         <input class="form-input" type="text" id="task-to-add" name="task" placeholder="To …">
@@ -46,9 +50,6 @@
     </div>
   </div>
 
-
-          <% include partials/_changeCategory %>
-          <% include partials/_listedItems %>
 
         </main>
   </body>

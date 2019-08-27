@@ -8,18 +8,14 @@ const db = require('./db_helper');
  * @return {Promise<{}>} A promise with a list:
  * user_id, list.name, last_modified, task.description, and status
  */
-const getListId = function(user_list) {
-  const userId = user_list[created_by];
-  const list_name = user_list[name];
-
+const getTaskId = function(task) {
   const queryStr = `
   SELECT *
-  FROM users_lists
-  JOIN list ON list.id = users_lists.list_id
-  WHERE users_lists.user_id = $1 AND list.name = $2;
+  FROM tasks
+  WHERE description = $1;
   `;
 
-  return db.idQuery(queryStr, [user_id, list_name);
+  return db.idQuery(queryStr, [task]);
 };
 
 /**
@@ -31,8 +27,8 @@ const getListId = function(user_list) {
 const addTask = function(user_inputs) {
   let queryParams = [];
 
-  //INSERT INTO task (list_id, last_modified, description)
-// VALUES (1,'2019-03-12T08:06:00.000Z','Harry Potter theme park'),
+  //INSERT INTO task (user_id, last_modified, description, category)
+// VALUES (1,'2019-03-12T08:06:00.000Z','Harry Potter theme park', 'To eat'),
   let insertStr = 'INSERT INTO task (';
   let valuesStr = 'VALUES (';
 

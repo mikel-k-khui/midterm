@@ -63,52 +63,50 @@ app.use("/api/users", usersRoutes(db));
 // Note: mount other resources here, using the same pattern above
 
 /* Start of DELETE queries */
-app.delete(":user_id/:task/:category", (req, res) => {
+app.delete("/:user_id/:task_id/:category", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
-  console.log("Delete all tasks in category");
   let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;
   `;
+  console.log("Deleted task in ", req.params.category, "for", req.session.userID);
+
   db.query(queryStr, [req.session.userID, req.params.category])
     .then(result => {
       if (result.rows[0] === undefined) {
-        // delete not successful
-      }
+        console.log("Deleted task in ", req.params.category, "\n", result.rows[0]);
+        res.redirect('/');
+        }
     })
     .catch(e => res.send(e));
 });
 
-app.delete(":user_id/:task/", (req, res) => {
+app.delete("/:user_id/:task_id/", (req, res) => {
+  console.log("Delete task");
   if (!req.session.userID) {
     res.redirect('/');
   }
-  console.log("Delete task");
   let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;
   `;
-  db.query(queryStr, [req.session.userID, req.params.task])
+  db.query(queryStr, [req.session.userID, req.params.task_id])
     .then(result => {
-      if (result.rows[0] === undefined) {
-        // delete not successful
-      }
+      console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
+      res.redirect('/');
     })
     .catch(e => res.send(e));
 });
 
-app.delete(":user_id/", (req, res) => {
+app.delete("/:user_id/", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
-
-  console.log("Delete user");
-
-  let queryStr = `DELETE FROM users WHERE user=$1 RETURNING *;
+  let deleteStr = `DELETE FROM users WHERE id=$1 RETURNING *;
   `;
-  db.query(queryStr, [req.session.userID])
+  db.query(deleteStr, [req.session.userID])
     .then(result => {
-      if (result.rows[0] === undefined) {
-        // delete not successful
-      }
+      console.log("Deleted user", result.rows[0], "and cleared", req.session.userID);
+      req.session = null;
+      res.redirect('/');
     })
     .catch(e => res.send(e));
 });
@@ -130,7 +128,7 @@ app.get("/", (req, res) => {
         console.log("Index 1st .then", user.rows[0]);
 
         const categories = ['eat', 'buy', 'read', 'watch'];
-        const categoryQueryString = 'SELECT tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
+        const categoryQueryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
         let eatArr = [];
         let buyArr = [];
         let readArr = [];
@@ -240,41 +238,58 @@ app.get("/:user_id/:list", (req, res) => {
 });
 
 /* start of POST queries */
-app.post("/:user_id/:task/:category", (req, res) => {
+// Change category of task
+app.post("/:user_id/:task_id/archive", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
 
-  console.log("PUT a task into different category");
-
-  let queryStr = `UPDATE tasks SET category = $1 WHERE user_id=$2 AND category=$3 RETURNING *;
+  let queryStr = `UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;
   `;
-  db.query(queryStr, [req.body["new-category"],req.session.userID, req.params.category])
+  console.log('false', req.params.task_d, req.session.userID);
+  db.query(queryStr, ['false', req.params.task_id, req.session.userID])
     .then(result => {
-      if (result.rows[0] === undefined) {
-        // delete not successful
-      }
+      console.log("Archived task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
+      res.redirect('/');
     })
-    .catch(e => res.send(e));
+    // .catch(e => res.send(e));
 });
 
-app.post("/:user_id/:task", (req, res) => {
+// Change category of task
+app.post("/:user_id/:task_id/:category", (req, res) => {
+  if (!req.session.userID) {
+    res.redirect('/');
+  }
+
+  let queryStr = `UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;
+  `;
+  console.log(req.params.category, req.params.task_d, req.session.userID);
+  db.query(queryStr, [req.params.category, req.params.task_id, req.session.userID])
+    .then(result => {
+      console.log("Edited task's category", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
+      res.redirect('/');
+    })
+    // .catch(e => res.send(e));
+});
+
+//Change description of task: current default to manual
+app.post("/:user_id/:task_id", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
   console.log("Edit task");
+  const new_description = 'my shborts';
   let queryStr = `UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;
   `;
-  db.query(queryStr, [req.body["new-description"], req.session.userID, req.params.task])
+  db.query(queryStr, [new_description, req.session.userID, req.params.task_id])
     .then(result => {
-      if (result.rows[0] === undefined) {
-        // delete not successful
-      }
+      console.log("Edited task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["description"]);
+      res.redirect('/');
     })
     .catch(e => res.send(e));
 });
 
-/* temporary put the edit as a GET for testing */
+//Change user name, email and password
 app.post("/:user_id", (req, res) => {
   console.log("Edit user", req.session.userID);
 

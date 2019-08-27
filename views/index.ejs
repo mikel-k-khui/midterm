@@ -24,7 +24,7 @@
           <a href="/" class="navbar-brand mr-2"><h1><img src="/Listify.svg" width="32" height="32" />Listify</h1></a>
         </section>
         <section class="navbar-center">
-            <div class="text-italic hide-lg">The only four categories you really need to worry about!</div>
+            <p class="text-italic hide-lg">The only four categories you really need to worry about!</p>
           </section>
         <section class="navbar-section">
           <% if (user) { %>
@@ -43,18 +43,20 @@
 
     <!-- form input control -->
     <div class="column col-12">
-      <form method="POST" action="/user_id/add-task?_method=PUT">
-        <div class="form-group">
-        <label class="form-label" for="task-to-add"><h1>Add a new item</h1></label>
-        <input class="form-input" type="text" id="task-to-add" name="task" placeholder="To …">
-      </div>
-      <button class="btn btn-primary btn-lg">Add</button>
+        <form method="POST" action="/user_id/add-task?_method=PUT">
+        <label class="form-label text-center" for="task-to-add"><h1>Add a new item:</h1></label>
+        <div class="input-group">
+          <input class="form-input" type="text" id="task-to-add" name="task" placeholder="">
+          <button class="btn btn-primary input-group-btn" type="submit">Add</button>
+        </div>
     </form>
+    <h5 class="text-center mt-2">Type the name of a movie, book, place to eat, or item to purchase, and we’ll do our best to automatically categorize it for you.</h5>
     </div>
-  </div>
 
+    <% if (user) { %>
+      <% include partials/_listedItems %>
+    <% } %>
 
-        </main>
-  </body>
-  </html>
-
+</main>
+</body>
+</html>

@@ -118,21 +118,53 @@ app.delete(":user_id/", (req, res) => {
 // Warning: avoid creating more routes in this file!
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
-  if (req.session.userID) {
-    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
+  const userID = req.session.userID;
+  console.log(userID);
+
+  if (userID) {
+    const userQueryString = `SELECT id, full_name FROM users WHERE id=$1;
     `;
     console.log("Route for GET/ w user=", req.session.userID);
-    db.query(queryStr, [req.session.userID])
+    db.query(userQueryString, [req.session.userID])
       .then(user => {
         console.log("Index 1st .then", user.rows[0]);
-        res.render("index", {user: user.rows[0]});
+
+        const categories = ['eat', 'buy', 'read', 'watch'];
+        const categoryQueryString = 'SELECT tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
+        let eatArr = [];
+        let buyArr = [];
+        let readArr = [];
+        let watchArr = [];
+        const eat = db.query(categoryQueryString, [userID, categories[0]])
+          .then(res => eatArr = res.rows);
+        const buy = db.query(categoryQueryString, [userID, categories[1]])
+          .then(res => buyArr = res.rows);
+        const read = db.query(categoryQueryString, [userID, categories[2]])
+          .then(res => readArr = res.rows);
+        const watch = db.query(categoryQueryString, [userID, categories[3]])
+          .then(res => watchArr = res.rows);
+
+        Promise.all([eat, buy, read, watch]).then(() => {
+          const templateVars = {
+            user: user.rows[0],
+            eats: eatArr,
+            buys: buyArr,
+            reads: readArr,
+            watches: watchArr
+          };
+          res.render('index', templateVars);
+        }).catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
       })
       .catch(e => {
         console.error(e);
         res.send(e);
       });
   } else {
-    console.log("Route for GET/ w no user=", req.session.userID);
+    console.log("Route for GET/ w no user=", userID);
     res.render("index", {user: undefined});
   }
 });

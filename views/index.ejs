@@ -53,7 +53,9 @@
     <h5 class="text-center mt-2">Type the name of a movie, book, place to eat, or item to purchase, and we’ll do our best to automatically categorize it for you.</h5>
     </div>
 
-
+    <% if (user) { %>
+      <% include partials/_listedItems %>
+    <% } %>
 
 </main>
 </body>

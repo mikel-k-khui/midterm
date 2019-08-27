@@ -28,29 +28,37 @@ body {
     }
   }
   h3 {
-    border-bottom: 5px solid;
+    margin: 0 -0.4rem;
+    padding: 0.2rem 0.8rem;
+    color: white;
+    // border-radius: 4px;
   }
   h3 i {
     float: right;
+    font-size: 1.2em;
   }
   .to-watch {
+    background-color: hsl(var(--to-watch), 30%, 90%);
     h3 {
-      color: hsl(var(--to-watch), 50%, 70%);
+      background-color: hsl(var(--to-watch), 50%, 70%);
     }
   }
   .to-read {
+    background-color: hsl(var(--to-read), 30%, 90%);
     h3 {
-      color: hsl(var(--to-read), 70%, 50%);
+      background-color: hsl(var(--to-read), 70%, 50%);
     }
   }
   .to-eat {
+    background-color: hsl(var(--to-eat), 30%, 90%);
     h3 {
-      color: hsl(var(--to-eat), 90%, 45%);
+      background-color: hsl(var(--to-eat), 90%, 45%);
     }
   }
   .to-buy {
+    background-color: hsl(var(--to-buy), 30%, 90%);
     h3 {
-      color: hsl(var(--to-buy), 50%, 50%);
+      background-color: hsl(var(--to-buy), 50%, 50%);
     }
   }
 }

@@ -275,13 +275,15 @@ app.put("/user_id/add-task", (req, res) => {
   db.query(queryStr, [req.session.userID])
     .then(user => {
       //Check if user exists in database before adding
-      console.log("Before insert to user", user.rows[0]);
       if (user.rows[0] === undefined) {
+        console.log("Before insert to user", user.rows[0]);
         const insertStr = `INSERT INTO users (full_name, email, created_at, password)
           VALUES (NULL, NULL, $1, NULL)
           RETURNING *;
           `;
         return db.query(insertStr,[created_at.toUTCString()]);
+      } else {
+        return user;
       }
     })
     .catch(e => {
@@ -290,16 +292,15 @@ app.put("/user_id/add-task", (req, res) => {
       res.send(e);
       throw e;
     })
-    .then(userId => {
+    .then(user => {
       const category = 'eat';
       const insertStr = `INSERT INTO tasks (user_id, last_modified, description, category)
         VALUES ($1, $2, $3, $4)
         RETURNING *;
         `;
-      console.log("Before add SQL:", userId.rows[0]["id"], created_at.toUTCString(), req.body["task"], category);
+      console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), req.body["task"], category);
 
-      return db.query(insertStr, [userId.rows[0]["id"], created_at.toUTCString(), req.body["task"], category]);
-      // .then(task => console.log("Output from SQL:", task.rows)).
+      return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), req.body["task"], category]);
     })
     .then(task => {
       req.session.userID = task.rows[0]["user_id"];

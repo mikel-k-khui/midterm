@@ -9,8 +9,10 @@ const bodyParser = require("body-parser");
 const sass       = require("node-sass-middleware");
 const app        = express();
 const morgan     = require('morgan');
-const bcrypt     = require('bcrypt');
-const cookieParser = require('cookie-parser');
+const methodOverride = require('method-override');
+const cookieSession = require('cookie-session');
+// const cookieParser = require('cookie-parser');
+// const bcrypt     = require('bcrypt');
 
 // PG database client/connection setup
 const { Pool } = require('pg');
@@ -26,6 +28,9 @@ db.connect();
 //         The :status token will be colored red for server error codes, yellow for client error codes, cyan for redirection codes, and uncolored for all other codes.
 app.use(morgan('dev'));
 
+//setup method override for RESTful
+app.use(methodOverride('_method'));
+
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/styles", sass({
@@ -35,8 +40,16 @@ app.use("/styles", sass({
   outputStyle: 'expanded'
 }));
 app.use(express.static("public"));
+const expiryDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 100));
+app.use(cookieSession({
+  name: 'listify',
+  keys: ['12345'],
+  // maxAge: 24 * 60 * 60 * 1000
+  expires: expiryDate
+}));
+//setup the cookie for name, key and 24 hours maximum session stay if session is still open
 
-app.use(cookieParser());
+// app.use(cookieParser());
 
 // Separated Routes for each Resource
 // Note: Feel free to replace the example routes below with your own
@@ -51,15 +64,15 @@ app.use("/api/users", usersRoutes(db));
 
 /* Start of DELETE queries */
 app.delete(":user_id/:task/:category", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.userID) {
     res.redirect('/');
   }
   console.log("Delete all tasks in category");
   let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;
   `;
-  db.query(queryStr, [req.cookies["user_id"], req.params.category])
+  db.query(queryStr, [req.session.userID, req.params.category])
     .then(result => {
-      if(result.rows[0] === undefined) {
+      if (result.rows[0] === undefined) {
         // delete not successful
       }
     })
@@ -67,15 +80,15 @@ app.delete(":user_id/:task/:category", (req, res) => {
 });
 
 app.delete(":user_id/:task/", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.userID) {
     res.redirect('/');
   }
   console.log("Delete task");
   let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;
   `;
-  db.query(queryStr, [req.cookies["user_id"], req.params.task])
+  db.query(queryStr, [req.session.userID, req.params.task])
     .then(result => {
-      if(result.rows[0] === undefined) {
+      if (result.rows[0] === undefined) {
         // delete not successful
       }
     })
@@ -83,7 +96,7 @@ app.delete(":user_id/:task/", (req, res) => {
 });
 
 app.delete(":user_id/", (req, res) => {
-  if (!req.cookies["user_id"]) {
+  if (!req.session.userID) {
     res.redirect('/');
   }
 
@@ -91,9 +104,9 @@ app.delete(":user_id/", (req, res) => {
 
   let queryStr = `DELETE FROM users WHERE user=$1 RETURNING *;
   `;
-  db.query(queryStr, [req.cookies["user_id"]])
+  db.query(queryStr, [req.session.userID])
     .then(result => {
-      if(result.rows[0] === undefined) {
+      if (result.rows[0] === undefined) {
         // delete not successful
       }
     })
@@ -105,43 +118,38 @@ app.delete(":user_id/", (req, res) => {
 // Warning: avoid creating more routes in this file!
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
-  // if (req.cookies["user_id"]) {
-  //   console.log(req.cookies["user_id"], "cookies");
-  // }
-  res.render("index");
+  if (req.session.userID) {
+    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
+    `;
+    console.log("Route for GET/ w user=", req.session.userID);
+    db.query(queryStr, [req.session.userID])
+      .then(user => {
+        console.log("Index 1st .then", user.rows[0]);
+        res.render("index", {user: user.rows[0]});
+      })
+      .catch(e => {
+        console.error(e);
+        res.send(e);
+      });
+  } else {
+    console.log("Route for GET/ w no user=", req.session.userID);
+    res.render("index", {user: undefined});
+  }
 });
 
 app.get("/login/:user_id", (req, res) => {
-  if (req.cookies["user_id"]) {
-    res.redirect('/');
-  }
   let queryStr = `SELECT id FROM users WHERE id=$1;
   `;
-  let user_id = req.params.user_id;
-  console.log("Start of GET/login", user_id);
+  console.log("Start of GET/login any", req.session.userID);
 
   db.query(queryStr, [req.params.user_id])
     .then(user => {
-      //create null user if user does not exist yet
-      if(user.rows[0] === undefined) {
-        const insertStr = `INSERT INTO users (full_name, email, created_at, password)
-        VALUES (NULL, NULL, $1, NULL)
-        RETURNING *;
-        `;
-        const created_at = new Date(Date.now());
-        user_id = undefined;
-        // console.log("1st .then of login", user.rows[0]);
-        return db.query(insertStr, [created_at.toUTCString()]);
+      if (user.rows[0] === undefined) {
+        res.redirect('/', {user: undefined});
       }
-    })
-    .then(user => {
-      if (user_id === undefined) {
-        // console.log("2nd .then", user.rows[0]["id"]);
-        user_id = user.rows[0]["id"];
-      }
-      // console.log("After 2nd .then", user_id);
-      res.cookie("user_id", user_id);
-      res.redirect(302, '/');
+      req.session.userID = user.rows[0]["id"];
+      console.log("Logged in for", req.session.userID);
+      res.redirect('/');
     })
     .catch(e => {
       console.error(e);
@@ -150,12 +158,29 @@ app.get("/login/:user_id", (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  res.clearCookie("user_id");
-  res.redirect(302, '/');
+  console.log("Logout");
+  req.session = null;
+  res.redirect('/');
 });
 
 app.get("/:user_id", (req, res) => {
-  res.render("index");
+  if (req.session.userID) {
+    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
+    `;
+    console.log("Route for GET/:user_id w user=", req.session.userID);
+    db.query(queryStr, [req.session.userID])
+      .then(user => {
+        console.log("Index 1st .then", user.rows[0]);
+        res.render("index", {user: user.rows[0]});
+      })
+      .catch(e => {
+        console.error(e);
+        res.send(e);
+      });
+  } else {
+    console.log("Route for GET/:user_id w no user=", req.session.userID);
+    res.render("index", {user: undefined});
+  }
 });
 
 // app.get("/:user_id", (req, res) => {
@@ -163,40 +188,28 @@ app.get("/:user_id", (req, res) => {
 // });
 
 app.get("/:user_id/:list", (req, res) => {
-  res.render("index");
+  if (req.session.userID) {
+    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
+    `;
+    console.log("Route for GET/:user_id/:list w user=", req.session.userID);
+    db.query(queryStr, [req.session.userID])
+      .then(user => {
+        console.log("Index 1st .then", user.rows[0]);
+        res.render("index", {user: user.rows[0]});
+      })
+      .catch(e => {
+        console.error(e);
+        res.send(e);
+      });
+  } else {
+    console.log("Route for GET/:user_id/:list w no user=", req.session.userID);
+    res.render("index", {user: undefined});
+  }
 });
 
 /* start of POST queries */
-/* POST query for user to register */
-// add new tasks to a user's list(s)
-app.post("/:user_id/add-task", (req, res) => {
-
-  // const user_id = req.session.userId;
-  const user_id = 2;
-  const category = 'eat';
-  const created_at = new Date(Date.now());
-
-  let queryStr = `INSERT INTO tasks (user_id, last_modified, description, category)
-  VALUES ($1, $2, $3, $4)
-  RETURNING *;
-  `;
-
-  db.query(queryStr, [user_id, created_at.toUTCString(), req.body["task"], category])
-    // .then(task => console.log("Output from SQL:", task.rows)).
-    .then(task => {
-      console.log("1st .then of insert", task.rows);
-      return db.query(`SELECT * FROM tasks WHERE user_id = $1;`, [user_id]);
-    })
-    .then(tasks => console.log("2nd .then of insert", tasks.rows))
-    .catch(e => {
-      console.error(e);
-      res.send(e);
-    })
-});
-
-/* Start of PUT queries */
-app.put(":user_id/:task/:category", (req, res) => {
-  if (!req.cookies["user_id"]) {
+app.post("/:user_id/:task/:category", (req, res) => {
+  if (!req.session.userID) {
     res.redirect('/');
   }
 
@@ -204,47 +217,104 @@ app.put(":user_id/:task/:category", (req, res) => {
 
   let queryStr = `UPDATE tasks SET category = $1 WHERE user_id=$2 AND category=$3 RETURNING *;
   `;
-  db.query(queryStr, [req.body["new-category"],req.cookies["user_id"], req.params.category])
+  db.query(queryStr, [req.body["new-category"],req.session.userID, req.params.category])
     .then(result => {
-      if(result.rows[0] === undefined) {
+      if (result.rows[0] === undefined) {
         // delete not successful
       }
     })
     .catch(e => res.send(e));
 });
 
-app.put(":user_id/:task/", (req, res) => {
-  if (!req.cookies["user_id"]) {
+app.post("/:user_id/:task", (req, res) => {
+  if (!req.session.userID) {
     res.redirect('/');
   }
-  console.log("Delete task");
+  console.log("Edit task");
   let queryStr = `UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;
   `;
-  db.query(queryStr, [req.body["new-description"], req.cookies["user_id"], req.params.task])
+  db.query(queryStr, [req.body["new-description"], req.session.userID, req.params.task])
     .then(result => {
-      if(result.rows[0] === undefined) {
+      if (result.rows[0] === undefined) {
         // delete not successful
       }
     })
     .catch(e => res.send(e));
 });
 
-app.put(":user_id/", (req, res) => {
-  if (!req.cookies["user_id"]) {
+/* temporary put the edit as a GET for testing */
+app.post("/:user_id", (req, res) => {
+  console.log("Edit user", req.session.userID);
+
+  if (!req.session.userID) {
+    console.log("No user?", req.session.userID);
     res.redirect('/');
   }
 
-  console.log("Delete user");
   const password = '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.';
-  let queryStr = `UPDATE tasks SET full_name = $1, email = $2, password = $3 WHERE user_id=$4 RETURNING *;
+  const new_name = 'Nathasa Romanova';
+  const new_email = 'black.widow@avengers.org';
+  let queryStr = `UPDATE users SET full_name = $1, email = $2, password = $3 WHERE id=$4 RETURNING *;
   `;
-  db.query(queryStr, [req.body["new-name"], req.body["new-email"], password, req.cookies["user_id"]])
+  // db.query(queryStr, [req.body["new_name"], req.body["new_email"], password, req.session.userID])
+  db.query(queryStr, [new_name, new_email, password, req.session.userID])
     .then(result => {
-      if(result.rows[0] === undefined) {
-        // delete not successful
-      }
+      res.redirect('/');
     })
     .catch(e => res.send(e));
+});
+
+/* Start of PUT queries */
+/* PUT query add new tasks to a user's list(s) */
+app.put("/user_id/add-task", (req, res) => {
+  const created_at = new Date(Date.now());
+  let queryStr = `SELECT id FROM users WHERE id=$1;
+  `;
+  console.log("Start of GET/login", req.session.userID);
+
+  db.query(queryStr, [req.session.userID])
+    .then(user => {
+      //Check if user exists in database before adding
+      console.log("Before insert to user", user.rows[0]);
+      if (user.rows[0] === undefined) {
+        const insertStr = `INSERT INTO users (full_name, email, created_at, password)
+          VALUES (NULL, NULL, $1, NULL)
+          RETURNING *;
+          `;
+        return db.query(insertStr,[created_at.toUTCString()]);
+      }
+    })
+    .catch(e => {
+      console.warn("Unsuccessful add user");
+      console.error(e);
+      res.send(e);
+      throw e;
+    })
+    .then(userId => {
+      const category = 'eat';
+      const insertStr = `INSERT INTO tasks (user_id, last_modified, description, category)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *;
+        `;
+      console.log("Before add SQL:", userId.rows[0]["id"], created_at.toUTCString(), req.body["task"], category);
+
+      return db.query(insertStr, [userId.rows[0]["id"], created_at.toUTCString(), req.body["task"], category]);
+      // .then(task => console.log("Output from SQL:", task.rows)).
+    })
+    .then(task => {
+      req.session.userID = task.rows[0]["user_id"];
+      console.log("1st .then of insert = added task okay", task.rows[0]["user_id"], "vs userID:", req.session.userID);
+      return db.query(`SELECT * FROM tasks WHERE user_id = $1;`, [task.rows[0]["user_id"]]);
+    })
+    .then(tasks => {
+      console.log("2nd .then of insert to return list of items", tasks.rows);
+      res.redirect("/");
+    })
+    .catch(e => {
+      console.warn("Unsuccessful add task");
+      console.error(e);
+      res.send(e);
+    });
 });
 
 app.listen(PORT, () => {

@@ -2,33 +2,27 @@
 <div class="column col-6 col-sm-12 to-eat">
     <h3>To Eat <i class="fas fa-utensils"></i></h3>
     <% if (eats.length > 0) { %>
-      <ul>
+      <ul class="to-do-item">
       <% for (let eat of eats) { %>
-      <li><%= eat.description %>  <span><%= eat.last_modified  %></span></li>
-      <% } %>
-      </ul>
-      <% } else { %>
-      <p>No items!</p>
-      <% } %>
-</div>
-<div class="column col-6 col-sm-12 to-buy">
-    <h3>To Buy <i class="fas fa-shopping-cart"></i></h3>
-    <% if (buys.length > 0) { %>
-      <ul>
-      <% for (let buy of buys) { %>
-      <li><%= buy.description %>  <span><%= buy.last_modified  %></span></li>
-      <% } %>
-      </ul>
-      <% } else { %>
-      <p>No items!</p>
-      <% } %>
-</div>
-<div class="column col-6 col-sm-12 to-read">
-    <h3>To Read <i class="fas fa-book"></i></h3>
-    <% if (reads.length > 0) { %>
-      <ul>
-      <% for (let read of reads) { %>
-      <li><%= read.description %>  <span><%= read.last_modified  %></span></li>
+      <li class="single-item">
+        <%= eat.description %>
+        <div>
+          <aside><span><%= eat.last_modified  %></span>
+            <div class="dropdown dropdown-right">
+              <a class="btn btn-primary dropdown-toggle" tabindex="0">...</a>
+              <ul class="menu">
+                  <li class="menu-item"><a href="#">Edit</a> <div class="menu-badge"><i class="fas fa-edit"></i></div></li>
+                  <li class="menu-item"><a href="#">Archive</a> <div class="menu-badge"><i class="fas fa-archive"></i></div></li>
+                  <li class="menu-item"><a href="#">Delete</a> <div class="menu-badge"><i class="fas fa-trash"></i></div></li>
+                  <div class="divider text-center" data-content="NEW CATEGORY"></div>
+                  <li class="menu-item"><a href="#">To Buy</a> <div class="menu-badge"><i class="fas fa-shopping-cart"></i></div></li>
+                  <li class="menu-item"><a href="#">To Read</a> <div class="menu-badge"><i class="fas fa-book"></i></div></li>
+                  <li class="menu-item"><a href="#">To Watch</a> <div class="menu-badge"><i class="fas fa-video"></i></div></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </li>
       <% } %>
       </ul>
       <% } else { %>
@@ -38,13 +32,90 @@
 <div class="column col-6 col-sm-12 to-watch">
     <h3>To Watch <i class="fas fa-video"></i></h3>
     <% if (watches.length > 0) { %>
-      <ul>
+      <ul class="to-do-item">
       <% for (let watch of watches) { %>
-      <li><%= watch.description %>  <span><%= watch.last_modified  %></span></li>
+      <li class="single-item">
+        <%= watch.description %>
+        <div>
+          <aside><span><%= watch.last_modified  %></span>
+            <div class="dropdown dropdown-right">
+              <a class="btn btn-primary dropdown-toggle" tabindex="0">...</a>
+              <ul class="menu">
+                  <li class="menu-item"><a href="#">Edit</a> <div class="menu-badge"><i class="fas fa-edit"></i></div></li>
+                  <li class="menu-item"><a href="#">Archive</a> <div class="menu-badge"><i class="fas fa-archive"></i></div></li>
+                  <li class="menu-item"><a href="#">Delete</a> <div class="menu-badge"><i class="fas fa-trash"></i></div></li>
+                  <div class="divider text-center" data-content="NEW CATEGORY"></div>
+                  <li class="menu-item"><a href="#">To Buy</a> <div class="menu-badge"><i class="fas fa-shopping-cart"></i></div></li>
+                  <li class="menu-item"><a href="#">To Read</a> <div class="menu-badge"><i class="fas fa-book"></i></div></li>
+                  <li class="menu-item"><a href="#">To Eat</a> <div class="menu-badge"><i class="fas fa-utensils"></i></div></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </li>
       <% } %>
       </ul>
       <% } else { %>
       <p>No items!</p>
       <% } %>
 </div>
-</section>
+<div class="column col-6 col-sm-12 to-buy">
+    <h3>To Buy <i class="fas fa-utensils"></i></h3>
+    <% if (buys.length > 0) { %>
+      <ul class="to-do-item">
+      <% for (let buy of buys) { %>
+      <li class="single-item">
+        <%= buy.description %>
+        <div>
+          <aside><span><%= buy.last_modified  %></span>
+            <div class="dropdown dropdown-right">
+              <a class="btn btn-primary dropdown-toggle" tabindex="0">...</a>
+              <ul class="menu">
+                  <li class="menu-item"><a href="#">Edit</a> <div class="menu-badge"><i class="fas fa-edit"></i></div></li>
+                  <li class="menu-item"><a href="#">Archive</a> <div class="menu-badge"><i class="fas fa-archive"></i></div></li>
+                  <li class="menu-item"><a href="#">Delete</a> <div class="menu-badge"><i class="fas fa-trash"></i></div></li>
+                  <div class="divider text-center" data-content="NEW CATEGORY"></div>
+                  <li class="menu-item"><a href="#">To Eat</a> <div class="menu-badge"><i class="fas fa-utensils"></i></div></li>
+                  <li class="menu-item"><a href="#">To Read</a> <div class="menu-badge"><i class="fas fa-book"></i></div></li>
+                  <li class="menu-item"><a href="#">To Watch</a> <div class="menu-badge"><i class="fas fa-video"></i></div></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>
+<div class="column col-6 col-sm-12 to-read">
+    <h3>To Read <i class="fas fa-utensils"></i></h3>
+    <% if (reads.length > 0) { %>
+      <ul class="to-do-item">
+      <% for (let read of reads) { %>
+      <li class="single-item">
+        <%= read.description %>
+        <div>
+          <aside><span><%= read.last_modified  %></span>
+            <div class="dropdown dropdown-right">
+              <a class="btn btn-primary dropdown-toggle" tabindex="0">...</a>
+              <ul class="menu">
+                  <li class="menu-item"><a href="#">Edit</a> <div class="menu-badge"><i class="fas fa-edit"></i></div></li>
+                  <li class="menu-item"><a href="#">Archive</a> <div class="menu-badge"><i class="fas fa-archive"></i></div></li>
+                  <li class="menu-item"><a href="#">Delete</a> <div class="menu-badge"><i class="fas fa-trash"></i></div></li>
+                  <div class="divider text-center" data-content="NEW CATEGORY"></div>
+                  <li class="menu-item"><a href="#">To Buy</a> <div class="menu-badge"><i class="fas fa-shopping-cart"></i></div></li>
+                  <li class="menu-item"><a href="#">To Eat</a> <div class="menu-badge"><i class="fas fa-utensils"></i></div></li>
+                  <li class="menu-item"><a href="#">To Watch</a> <div class="menu-badge"><i class="fas fa-video"></i></div></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </li>
+      <% } %>
+      </ul>
+      <% } else { %>
+      <p>No items!</p>
+      <% } %>
+</div>

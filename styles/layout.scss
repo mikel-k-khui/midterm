@@ -5,7 +5,7 @@
   --beige: #f4f1ec;
   --grey: #807d76;
   --dark-blue: #4056a1;
-  --to-watch: 240;
+  --to-watch: 220;
   --to-buy: 120;
   --to-eat: 15;
   --to-read: 315;
@@ -20,11 +20,19 @@ body {
 }
 
 .to-do-items {
-  ul {
+  ul.to-do-item {
+    padding: 0.5rem;
+    margin: 0;
+    list-style: none;
     span {
       color: var(--grey);
       font-size: 0.8em;
-      margin-left: 1em;
+      margin-right: 1em;
+    }
+    li.single-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
   }
   h3 {
@@ -39,26 +47,34 @@ body {
   }
   .to-watch {
     background-color: hsl(var(--to-watch), 30%, 90%);
-    h3 {
-      background-color: hsl(var(--to-watch), 50%, 70%);
+    h3, .btn.btn-primary {
+      background-color: hsl(var(--to-watch), 50%, 50%);
+      border: none;
     }
   }
   .to-read {
     background-color: hsl(var(--to-read), 30%, 90%);
-    h3 {
-      background-color: hsl(var(--to-read), 70%, 50%);
+    h3, .btn.btn-primary {
+      background-color: hsl(var(--to-read), 60%, 50%);
+      border: none;
     }
   }
   .to-eat {
     background-color: hsl(var(--to-eat), 30%, 90%);
-    h3 {
+    h3, .btn.btn-primary {
       background-color: hsl(var(--to-eat), 90%, 45%);
+      border: none;
     }
   }
   .to-buy {
     background-color: hsl(var(--to-buy), 30%, 90%);
-    h3 {
+    h3, .btn.btn-primary {
       background-color: hsl(var(--to-buy), 50%, 50%);
+      border: none;
     }
   }
+}
+
+.menu-badge i {
+  margin-right: .4rem;
 }

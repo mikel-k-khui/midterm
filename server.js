@@ -114,7 +114,7 @@ const addUser =  function(user) {
 
 const convertGuestIntoUser =  function(user, guestUserID) {
   const createdAt = new Date(Date.now());
-  const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4) WHERE id = $5; RETURNING *;';
+  const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4 WHERE id = $5 RETURNING *;';
   return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
     .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
@@ -228,29 +228,19 @@ app.get("/", (req, res) => {
 // Create a new user, starting from a guest if cookie already exists
 app.post('/register', (req, res) => {
   const userID = req.session.userID;
-  console.log('userID on POST /register', userID);
   const user = req.body;
-  console.log('user here', user);
   if (userID) {
     // to save list started as a guest, assume we have an existing userID from a guest cookie, then we'll update the DB rather than insert a new entry
-    getUserWithEmail(user.email)
+    //check for existing email address...
+    user.password = bcrypt.hashSync(user.password, 12);
+    convertGuestIntoUser(user, userID)
       .then(user => {
-      //check for existing email address...
-        if (user) {
-          res.send('Error: email has already been registered!');
+        if (!user) {
+          res.send({error: "error"});
           return;
         }
-        user.password = bcrypt.hashSync(user.password, 12);
-        convertGuestIntoUser(user, userID)
-          .then(user => {
-            if (!user) {
-              res.send('Error: invalid username.');
-              return;
-            }
-            req.session.userID = user.id;
-            console.log('my id is', user.id);
-            res.redirect('/');
-          });
+        req.session.userID = user.id; // shouldn't really be necessary given that the cookie already existed...
+        res.redirect('/');
       })
       .catch(e => res.send(e));
   } else {
@@ -285,25 +275,25 @@ app.post('/login', (req, res) => {
     .catch(e => res.send('Error: invalid email address.'));
 });
 
-app.get("/login/:user_id", (req, res) => {
-  let queryStr = `SELECT id FROM users WHERE id=$1;
-  `;
-  console.log("Start of GET/login any", req.session.userID);
+// app.get("/login/:user_id", (req, res) => {
+//   let queryStr = `SELECT id FROM users WHERE id=$1;
+//   `;
+//   console.log("Start of GET/login any", req.session.userID);
 
-  db.query(queryStr, [req.params.user_id])
-    .then(user => {
-      if (user.rows[0] === undefined) {
-        res.redirect('/', {user: undefined});
-      }
-      req.session.userID = user.rows[0]["id"];
-      console.log("Logged in for", req.session.userID);
-      res.redirect('/');
-    })
-    .catch(e => {
-      console.error(e);
-      res.send(e);
-    });
-});
+//   db.query(queryStr, [req.params.user_id])
+//     .then(user => {
+//       if (user.rows[0] === undefined) {
+//         res.redirect('/', {user: undefined});
+//       }
+//       req.session.userID = user.rows[0]["id"];
+//       console.log("Logged in for", req.session.userID);
+//       res.redirect('/');
+//     })
+//     .catch(e => {
+//       console.error(e);
+//       res.send(e);
+//     });
+// });
 
 app.get("/logout", (req, res) => {
   console.log("Logout");

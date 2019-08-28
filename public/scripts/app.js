@@ -3,7 +3,7 @@ $(document).ready(() => {
 
   $('#newtask').submit((event) => {
     event.preventDefault();
-    const form = $(this);
+    const $form = $(this);
     // const task = $(this).children('div').children('#task-to-add').val(); // get task input
     const task = $('#task-to-add').val();
     console.log("Sending Ajax with task", task);
@@ -13,20 +13,17 @@ $(document).ready(() => {
       data: {task: task}
     })
       .then(function(response) {
-        // show submission form here with category!
-        // .toggle(200, 'swing')
-        console.log("Successfully added to category", response);
-        // $(this)
-        //   .children('div')
-        //   .find('input[type=text], textarea')
-        //   .val(''); // clear form (needs work)
+        // show post-submission form here with category corrections
+        // console.log("Successfully added to category", response);
+        $('#task-to-add').val(''); // clear form (could use better DOM tree traversal)
         $('#added-item').text(response.task);
         $('#added-list').text(response.category);
 
-        // $('.changecat').empty();
-        $('.changecat').append(response.button1);
-        $('.changecat').append(response.button2);
-        $('.changecat').append(response.button3);
+        const $editButtons = $('.changecat');
+        $editButtons.empty();
+        $editButtons.append(response.button1);
+        $editButtons.append(response.button2);
+        $editButtons.append(response.button3);
         $('#submitted-item').slideDown();
       })
       .fail(function(err) {

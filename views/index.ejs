@@ -33,7 +33,7 @@
             <% } %>
           <% } else { %>
             <a href="/login/2" class="btn btn-primary">Fake Login</a>
-          <% } %>
+
           <button class="btn btn-primary modal-toggle ml-2" data-modal="#login">Login</button>
           <button class="btn btn-primary modal-toggle ml-2" data-modal="#register">Register</button>
           <div class="modal modal-sm" id="login">
@@ -43,20 +43,20 @@
                       <a class="btn btn-clear close-modal float-right modal-close" aria-label="Close"></a>
                       <div class="modal-title h5">Login</div>
                   </div>
-                  <div class="modal-body">
-                      <form method="POST" action="">
-                          <div class="form-group">
-                              <label class="form-label" for="login-email">Email address</label>
-                              <input class="form-input" type="text" id="login-email" placeholder="Email address">
-                              <label class="form-label" for="login-password">Password</label>
-                              <input class="form-input" type="password" id="login-password" placeholder="Password">
-                          </div>
-                      </form>
-                  </div>
-                  <div class="modal-footer">
+                  <form method="POST" action="/login">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label" for="login-email">Email address</label>
+                            <input class="form-input" type="email" name="email" id="login-email" placeholder="Email address">
+                            <label class="form-label" for="login-password">Password</label>
+                            <input class="form-input" type="password" name="password" id="login-password" placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
                       <button class="btn btn-primary" type="submit">Submit</button>
                       <a class="btn btn-link modal-close" aria-label="Close">Close</a>
-                  </div>
+                    </div>
+                  </form>
               </div>
             </div>
 
@@ -67,24 +67,25 @@
                         <a class="btn btn-clear close-modal float-right modal-close" aria-label="Close"></a>
                         <div class="modal-title h5">Register</div>
                     </div>
-                    <div class="modal-body">
-                        <form method="POST" action="">
-                            <div class="form-group">
-                                <label class="form-label" for="register-name">Name</label>
-                                <input class="form-input" type="text" id="register-name" placeholder="Full name">
-                                <label class="form-label" for="register-email">Email address</label>
-                                <input class="form-input" type="text" id="register-email" placeholder="Email address">
-                                <label class="form-label" for="register-password">Password</label>
-                                <input class="form-input" type="password" id="register-password" placeholder="Password">
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
+                    <form method="POST" action="/register">
+                      <div class="modal-body">
+                          <div class="form-group">
+                              <label class="form-label" for="register-name">Name</label>
+                              <input class="form-input" type="text" id="register-name" placeholder="Full name" name="fullname">
+                              <label class="form-label" for="register-email">Email address</label>
+                              <input class="form-input" type="text" id="register-email" placeholder="Email address" name="email">
+                              <label class="form-label" for="register-password">Password</label>
+                              <input class="form-input" type="password" id="register-password" placeholder="Password" name="password">
+                          </div>
+                      </div>
+                      <div class="modal-footer">
                         <button class="btn btn-primary" type="submit">Submit</button>
                         <a class="btn btn-link modal-close" aria-label="Close">Close</a>
-                    </div>
+                      </div>
+                    </form>
                 </div>
               </div>
+              <% } %>
             </section>
           </header>
 

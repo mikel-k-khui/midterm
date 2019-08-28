@@ -12,7 +12,7 @@ const morgan     = require('morgan');
 const methodOverride = require('method-override');
 const cookieSession = require('cookie-session');
 // const cookieParser = require('cookie-parser');
-// const bcrypt     = require('bcrypt');
+const bcrypt     = require('bcrypt');
 
 // PG database client/connection setup
 const { Pool } = require('pg');
@@ -62,6 +62,43 @@ app.use("/api/users", usersRoutes(db));
 // app.use("/api/widgets", widgetsRoutes(db));
 // Note: mount other resources here, using the same pattern above
 
+/* Start of function declarations, abstract away later */
+
+/**
+ * Get a single user from the database given their email.
+ * @param {String} email The email of the user.
+ * @return {Promise<{}>} A promise to the user.
+ */
+const getUserWithEmail = function(email) {
+  let user;
+  const queryString = 'SELECT * from users where email = $1';
+  const values = email;
+  return db.query(queryString, [values])
+    .then(res => {
+      user = res.rows[0];
+      if (user) {
+        return user;
+      }
+      return null;
+    })
+    .catch(err => console.error('query error', err.stack));
+};
+
+/**
+ * Check if a user exists with a given username and password
+ * @param {String} email
+ * @param {String} password encrypted
+ */
+const login =  function(email, password) {
+  return getUserWithEmail(email)
+    .then(user => {
+      if (bcrypt.compareSync(password, user.password)) {
+        return user;
+      }
+      return null;
+    });
+};
+
 /* Start of DELETE queries */
 app.delete("/:user_id/:task_id/:category", (req, res) => {
   if (!req.session.userID) {
@@ -76,7 +113,7 @@ app.delete("/:user_id/:task_id/:category", (req, res) => {
       if (result.rows[0] === undefined) {
         console.log("Deleted task in ", req.params.category, "\n", result.rows[0]);
         res.redirect('/');
-        }
+      }
     })
     .catch(e => res.send(e));
 });
@@ -167,6 +204,21 @@ app.get("/", (req, res) => {
   }
 });
 
+app.post('/login', (req, res) => {
+  const {email, password} = req.body;
+  login(email, password)
+    .then(user => {
+      if (!user) {
+        res.send({error: "error"});
+        return;
+      }
+      req.session.userID = user.id;
+      res.redirect('/');
+      // res.send({user: {name: user.full_name, email: user.email, id: user.id}});
+    })
+    .catch(e => res.send(e));
+});
+
 app.get("/login/:user_id", (req, res) => {
   let queryStr = `SELECT id FROM users WHERE id=$1;
   `;
@@ -251,8 +303,8 @@ app.post("/:user_id/:task_id/archive", (req, res) => {
     .then(result => {
       console.log("Archived task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
       res.redirect('/');
-    })
-    // .catch(e => res.send(e));
+    });
+  // .catch(e => res.send(e));
 });
 
 // Change category of task
@@ -268,8 +320,8 @@ app.post("/:user_id/:task_id/:category", (req, res) => {
     .then(result => {
       console.log("Edited task's category", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
       res.redirect('/');
-    })
-    // .catch(e => res.send(e));
+    });
+  // .catch(e => res.send(e));
 });
 
 //Change description of task: current default to manual

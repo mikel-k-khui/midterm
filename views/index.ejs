@@ -21,7 +21,7 @@
 
       <header class="navbar">
         <section class="navbar-section">
-          <a href="/" class="navbar-brand mr-2"><h1><img src="/Listify.svg" width="32" height="32" />Listify</h1></a>
+          <a href="/" class="navbar-brand mr-2 mt-2"><h1><img src="/Listify.svg" width="32" height="32" />Listify</h1></a>
         </section>
         <section class="navbar-section">
           <% if (user) { %>
@@ -29,7 +29,7 @@
               Welcome, <%= user.full_name %> <a href="/logout" class="btn btn-primary ml-2">Logout</a>
             <% } else { %>
               Welcome, guest <form method="POST" action="/<%= user.id %>">
-                <button type="submit" class="btn btn-primary  ml-2">Sign up to save list</button></form>
+                <button type="submit" class="btn btn-primary  ml-2">Sign up to save list</button></form> <a href="/logout" class="btn btn-primary ml-2">Cancel</a>
             <% } %>
           <% } else { %>
             <a href="/login/2" class="btn btn-primary">Login</a>

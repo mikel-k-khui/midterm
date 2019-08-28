@@ -40,7 +40,7 @@ app.use("/styles", sass({
   outputStyle: 'expanded'
 }));
 app.use(express.static("public"));
-const expiryDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 100));
+const expiryDate = new Date(Date.now() + (7 * 24 * 60 * 60 * 100)); // seven day expiry if not deleted on the client side
 app.use(cookieSession({
   name: 'listify',
   keys: ['12345'],
@@ -108,6 +108,14 @@ const addUser =  function(user) {
   const createdAt = new Date(Date.now());
   const queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
   return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password])
+    .then(res => res.rows[0])
+    .catch(err => console.error('query error', err.stack));
+};
+
+const convertGuestIntoUser =  function(user, guestUserID) {
+  const createdAt = new Date(Date.now());
+  const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4) WHERE id = $5; RETURNING *;';
+  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
     .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
 };
@@ -217,21 +225,49 @@ app.get("/", (req, res) => {
   }
 });
 
-// Create a new user
-app.post('/', (req, res) => {
+// Create a new user, starting from a guest if cookie already exists
+app.post('/register', (req, res) => {
+  const userID = req.session.userID;
+  console.log('userID on POST /register', userID);
   const user = req.body;
-  console.log('user', user);
-  user.password = bcrypt.hashSync(user.password, 12);
-  addUser(user)
-    .then(user => {
-      if (!user) {
-        res.send({error: "error"});
-        return;
-      }
-      req.session.userID = user.id;
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
+  console.log('user here', user);
+  if (userID) {
+    // to save list started as a guest, assume we have an existing userID from a guest cookie, then we'll update the DB rather than insert a new entry
+    getUserWithEmail(user.email)
+      .then(user => {
+      //check for existing email address...
+        if (user) {
+          res.send('Error: email has already been registered!');
+          return;
+        }
+        user.password = bcrypt.hashSync(user.password, 12);
+        convertGuestIntoUser(user, userID)
+          .then(user => {
+            if (!user) {
+              res.send('Error: invalid username.');
+              return;
+            }
+            req.session.userID = user.id;
+            console.log('my id is', user.id);
+            res.redirect('/');
+          });
+      })
+      .catch(e => res.send(e));
+  } else {
+    // add a vanilla user
+    //check for existing email address...
+    user.password = bcrypt.hashSync(user.password, 12);
+    addUser(user)
+      .then(user => {
+        if (!user) {
+          res.send({error: "error"});
+          return;
+        }
+        req.session.userID = user.id;
+        res.redirect('/');
+      })
+      .catch(e => res.send(e));
+  }
 });
 
 app.post('/login', (req, res) => {
@@ -239,14 +275,14 @@ app.post('/login', (req, res) => {
   login(email, password)
     .then(user => {
       if (!user) {
-        res.send({error: "error"});
+        res.send('Error: invalid password');
         return;
       }
       req.session.userID = user.id;
       res.redirect('/');
       // res.send({user: {name: user.full_name, email: user.email, id: user.id}});
     })
-    .catch(e => res.send(e));
+    .catch(e => res.send('Error: invalid email address.'));
 });
 
 app.get("/login/:user_id", (req, res) => {
@@ -275,25 +311,25 @@ app.get("/logout", (req, res) => {
   res.redirect('/');
 });
 
-app.get("/:user_id", (req, res) => {
-  if (req.session.userID) {
-    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
-    `;
-    console.log("Route for GET/:user_id w user=", req.session.userID);
-    db.query(queryStr, [req.session.userID])
-      .then(user => {
-        console.log("Index 1st .then", user.rows[0]);
-        res.render("index", {user: user.rows[0]});
-      })
-      .catch(e => {
-        console.error(e);
-        res.send(e);
-      });
-  } else {
-    console.log("Route for GET/:user_id w no user=", req.session.userID);
-    res.render("index", {user: undefined});
-  }
-});
+// app.get("/:user_id", (req, res) => {
+//   if (req.session.userID) {
+//     let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
+//     `;
+//     console.log("Route for GET/:user_id w user=", req.session.userID);
+//     db.query(queryStr, [req.session.userID])
+//       .then(user => {
+//         console.log("Index 1st .then", user.rows[0]);
+//         res.render("index", {user: user.rows[0]});
+//       })
+//       .catch(e => {
+//         console.error(e);
+//         res.send(e);
+//       });
+//   } else {
+//     console.log("Route for GET/:user_id w no user=", req.session.userID);
+//     res.render("index", {user: undefined});
+//   }
+// });
 
 // app.get("/:user_id", (req, res) => {
 //   res.render("index");
@@ -372,26 +408,26 @@ app.post("/:user_id/:task_id", (req, res) => {
 });
 
 //Change user name, email and password
-app.post("/:user_id", (req, res) => {
-  console.log("Edit user", req.session.userID);
+// app.post("/:user_id", (req, res) => {
+//   console.log("Edit user", req.session.userID);
 
-  if (!req.session.userID) {
-    console.log("No user?", req.session.userID);
-    res.redirect('/');
-  }
+//   if (!req.session.userID) {
+//     console.log("No user?", req.session.userID);
+//     res.redirect('/');
+//   }
 
-  const password = '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.';
-  const new_name = 'Nathasa Romanova';
-  const new_email = 'black.widow@avengers.org';
-  let queryStr = `UPDATE users SET full_name = $1, email = $2, password = $3 WHERE id=$4 RETURNING *;
-  `;
-  // db.query(queryStr, [req.body["new_name"], req.body["new_email"], password, req.session.userID])
-  db.query(queryStr, [new_name, new_email, password, req.session.userID])
-    .then(result => {
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
-});
+//   const password = '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.';
+//   const new_name = 'Nathasa Romanova';
+//   const new_email = 'black.widow@avengers.org';
+//   let queryStr = `UPDATE users SET full_name = $1, email = $2, password = $3 WHERE id=$4 RETURNING *;
+//   `;
+//   // db.query(queryStr, [req.body["new_name"], req.body["new_email"], password, req.session.userID])
+//   db.query(queryStr, [new_name, new_email, password, req.session.userID])
+//     .then(result => {
+//       res.redirect('/');
+//     })
+//     .catch(e => res.send(e));
+// });
 
 /* Start of PUT queries */
 /* PUT query add new tasks to a user's list(s) */

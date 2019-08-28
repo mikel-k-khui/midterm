@@ -319,6 +319,17 @@ app.put("/user_id/add-task", (req, res) => {
   `;
   console.log("Start of GET/login", req.session.userID);
 
+  const categories = ['eat', 'buy', 'read', 'watch'];
+  const categoryInfo = {
+    eat: { title: 'To Eat', buttonCode: ''},
+    buy: { title: 'To Buy', buttonCode: '<button class="btn btn-lg">To Buy <i class="fas fa-shopping-cart"></i></button>'},
+    read: { title: 'To Read', buttonCode: '<button class="btn btn-lg">To Read <i class="fas fa-book"></i></button>'},
+    watch: { title: 'To Watch', buttonCode: '<button class="btn btn-lg">To Watch <i class="fas fa-video"></i></button>'}
+  };
+
+  const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
+  let mostRecentTaskID, task;
+
   db.query(queryStr, [req.session.userID])
     .then(user => {
       //Check if user exists in database before adding
@@ -333,33 +344,51 @@ app.put("/user_id/add-task", (req, res) => {
         return user;
       }
     })
-    .catch(e => {
-      console.warn("Unsuccessful add user");
-      console.error(e);
-      res.send(e);
-      throw e;
-    })
     .then(user => {
-      const categories = ['eat', 'buy', 'read', 'watch']; //API stuff goes here!!!
-      const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
-      console.log('category', category);
-      const task = req.body["task"];
+      // console.log('category', category, 'task', task);
+      task = req.body["task"];
       const insertStr = `INSERT INTO tasks (user_id, last_modified, description, category)
         VALUES ($1, $2, $3, $4)
         RETURNING *;
         `;
       console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), task, category);
-
       return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), task, category]);
     })
     .then(task => {
       req.session.userID = task.rows[0]["user_id"];
       console.log("1st .then of insert = added task okay", task.rows[0]["user_id"], "vs userID:", req.session.userID);
+      mostRecentTaskID = task.rows.slice(-1)[0].id; // get latest task ID
       return db.query(`SELECT * FROM tasks WHERE user_id = $1;`, [task.rows[0]["user_id"]]);
     })
     .then(tasks => {
       console.log("2nd .then of insert to return list of items", tasks.rows);
-      res.redirect("/");
+      // res.redirect("/");
+      const userID = tasks.rows.slice(-1)[0].user_id;
+      const buttonsHTML = {
+        eat: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/eat">To Eat <i class="fas fa-utensils"></i></button>',
+        buy: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/buy">To Buy <i class="fas fa-shopping-cart"></i></button>',
+        read: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/read">To Read <i class="fas fa-book"></i></button>',
+        watch: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/watch">To Watch <i class="fas fa-video"></i></button>'
+      };
+
+      let buttons = [];
+      for (let i = 0; i < categories.length; i++) {
+        if (categories[i] !== category) {
+          buttons.push(categories[i]);
+        }
+      } // get three 'remaining' categories
+
+      res.json(
+        {
+          task: task,
+          userID: userID,
+          taskID: mostRecentTaskID,
+          category: categoryInfo[category]["title"],
+          button1: buttonsHTML[buttons[0]],
+          button2: buttonsHTML[buttons[1]],
+          button3: buttonsHTML[buttons[2]]
+        }); // send json response for AJAX request
+
     })
     .catch(e => {
       console.warn("Unsuccessful add task");

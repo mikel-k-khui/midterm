@@ -99,6 +99,19 @@ const login =  function(email, password) {
     });
 };
 
+/**
+ * Add a new user to the database.
+ * @param {{name: string, password: string, email: string}} user
+ * @return {Promise<{}>} A promise to the user.
+ */
+const addUser =  function(user) {
+  const createdAt = new Date(Date.now());
+  const queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
+  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password])
+    .then(res => res.rows[0])
+    .catch(err => console.error('query error', err.stack));
+};
+
 /* Start of DELETE queries */
 app.delete("/:user_id/:task_id/:category", (req, res) => {
   if (!req.session.userID) {
@@ -202,6 +215,23 @@ app.get("/", (req, res) => {
     console.log("Route for GET/ w no user=", userID);
     res.render("index", {user: undefined});
   }
+});
+
+// Create a new user
+app.post('/', (req, res) => {
+  const user = req.body;
+  console.log('user', user);
+  user.password = bcrypt.hashSync(user.password, 12);
+  addUser(user)
+    .then(user => {
+      if (!user) {
+        res.send({error: "error"});
+        return;
+      }
+      req.session.userID = user.id;
+      res.redirect('/');
+    })
+    .catch(e => res.send(e));
 });
 
 app.post('/login', (req, res) => {

@@ -340,14 +340,17 @@ app.put("/user_id/add-task", (req, res) => {
       throw e;
     })
     .then(user => {
-      const category = 'eat';
+      const categories = ['eat', 'buy', 'read', 'watch']; //API stuff goes here!!!
+      const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
+      console.log('category', category);
+      const task = req.body["task"];
       const insertStr = `INSERT INTO tasks (user_id, last_modified, description, category)
         VALUES ($1, $2, $3, $4)
         RETURNING *;
         `;
-      console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), req.body["task"], category);
+      console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), task, category);
 
-      return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), req.body["task"], category]);
+      return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), task, category]);
     })
     .then(task => {
       req.session.userID = task.rows[0]["user_id"];

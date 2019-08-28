@@ -44,6 +44,20 @@ header .navbar-section h1 img {
       justify-content: space-between;
       padding-bottom: 0.4rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+      .menu-item .btn {
+        display: block;
+        width: 100%;
+        text-align: left;
+        color: #3b4351;
+      }
+      .menu-item:hover, .menu-item .btn:hover {
+        color: #5755d9;
+      }
+      .menu-item:hover {
+        background: #f1f1fc;
+        color: #5755d9;
+        border-radius: 3px;
+      }
     }
     .only-item {
       min-height: 36px;

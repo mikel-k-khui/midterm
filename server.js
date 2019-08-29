@@ -15,10 +15,7 @@ const cookieSession = require('cookie-session');
 const bcrypt     = require('bcrypt');
 
 // PG database client/connection setup
-const { Pool } = require('pg');
-const dbParams = require('./lib/db.js');
-const db = new Pool(dbParams);
-db.connect();
+const database = require('./lib/db_all_queries');
 
 // Postgres SQL files
 
@@ -52,178 +49,14 @@ app.use(cookieSession({
 
 // Separated Routes for each Resource
 // Note: Feel free to replace the example routes below with your own
-const usersRoutes = require("./routes/users");
+// const usersRoutes = require("./routes/users");
 // const widgetsRoutes = require("./routes/widgets");
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
-app.use("/api/users", usersRoutes(db));
+// app.use("/api/users", usersRoutes(db));
 // app.use("/api/widgets", widgetsRoutes(db));
 // Note: mount other resources here, using the same pattern above
-
-/* Start of function declarations, abstract away later */
-
-/**
- * Get a single user from the database given their email.
- * @param {String} email The email of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-const getUserWithEmail = function(email) {
-  let user;
-  const queryString = 'SELECT * from users where email = $1';
-  const values = email;
-  return db.query(queryString, [values])
-    .then(res => {
-      user = res.rows[0];
-      if (user) {
-        return user;
-      }
-      return null;
-    })
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Get a single user from the database given their id.
- * @param {string} id The id of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-const getUserWithId = function(id) {
-  let user;
-  const queryString = 'SELECT * from users where id = $1';
-  const values = id;
-  return db.query(queryString, [values])
-    .then(res => {
-      user = res.rows[0];
-      if (user) {
-        return user;
-      }
-      return null;
-    })
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Check if a user exists with a given username and password
- * @param {String} email
- * @param {String} password encrypted
- */
-const login = function(email, password) {
-  return getUserWithEmail(email)
-    .then(user => {
-      if (bcrypt.compareSync(password, user.password)) {
-        return user;
-      }
-      return null;
-    });
-};
-
-/**
- * Add a new user to the database.
- * @param {{full_name: string, password: string, email: string}} user
- * @return {Promise<{}>} A promise to the user.
- */
-const addUser = function(user, guest) {
-  const createdAt = new Date(Date.now());
-  let params = [];
-  let queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
-
-  if (guest === 1) {
-    queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES (NULL, NULL, $1, NULL) RETURNING *;';
-    params = [createdAt.toUTCString()];
-  } else {
-    params = [user.fullname, user.email, createdAt.toUTCString(), user.password];
-  }
-  return db.query(queryString, params)
-    .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Add a guest user to the database (cookie already assigned)
- * @param {{full_name: string, password: string, email: string}} user
- * @param {guestUserID} The user ID to update
- * @return {Promise<{}>} A promise to the user.
- */
-const convertGuestIntoUser = function(user, guestUserID) {
-  const createdAt = new Date(Date.now());
-  const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4 WHERE id = $5 RETURNING *;';
-  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
-    .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Add a task to the database
- * @param {int} userID
- * @param {string} description
- * @param {string} category
- * @return {Promise<{}>} A promise to the user.
- */
-const addTask = function(userID, description, category) {
-  const createdAt = new Date(Date.now());
-  const queryString = 'INSERT INTO tasks (user_id, last_modified, description, category) VALUES ($1, $2, $3, $4) RETURNING *;';
-  return db.query(queryString, [userID, createdAt.toUTCString(), description, category])
-    .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Get active tasks for a corresponding user in a given category
- * @param {int} user ID
- * @param {string} category
- * @return {Promise<{}>} A promise to the user.
- */
-const getActiveTasksByCategory = function(userid, category) {
-  const queryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
-  return db.query(queryString, [userid, category])
-    .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Update task category for a corresponding user
- * @param {int} userid
- * @param {int} taskid
- * @param {string} fieldToUpdate
- * @param {string} newValue
- * @return {Promise<{}>} A promise to the user.
- */
-const updateFieldOfTask = function(userid, taskid, fieldToUpdate, newValue) {
-  let queryString;
-  switch (fieldToUpdate) {
-  case 'category':
-    queryString = 'UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-    break;
-  case 'active':
-    queryString = 'UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-    break;
-  case 'description':
-    queryString = 'UPDATE tasks SET description = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-    break;
-  default:
-  }
-  return db.query(queryString, [newValue, taskid, userid])
-    .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Delete given task for a corresponding user
- * @param {int} userid
- * @param {int} taskid
- * @return {Promise<{}>} A promise to the user.
- */
-const deleteTask = function(userid, taskid) {
-  const queryString = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
-  return db.query(queryString, [userid, taskid])
-    .then(res => res.rows)
-    .catch(err => console.error('query error', err.stack));
-};
-
-
-
-
 
 
 /* Start of GET queries */
@@ -233,7 +66,7 @@ const deleteTask = function(userid, taskid) {
 app.get("/", (req, res) => {
   const userID = req.session.userID;
   if (userID) {
-    getUserWithId(userID)
+    database.getUserWithId(userID)
       .then(user => {
         const categories = ['eat', 'buy', 'read', 'watch'];
 
@@ -242,10 +75,10 @@ app.get("/", (req, res) => {
         let readArr = [];
         let watchArr = [];
 
-        let eat = getActiveTasksByCategory(user.id, categories[0]).then(tasks => eatArr = tasks);
-        let buy = getActiveTasksByCategory(user.id, categories[1]).then(tasks => buyArr = tasks);
-        let read = getActiveTasksByCategory(user.id, categories[2]).then(tasks => readArr = tasks);
-        let watch = getActiveTasksByCategory(user.id, categories[3]).then(tasks => watchArr = tasks);
+        let eat = database.getActiveTasksByCategory(user.id, categories[0]).then(tasks => eatArr = tasks);
+        let buy = database.getActiveTasksByCategory(user.id, categories[1]).then(tasks => buyArr = tasks);
+        let read = database.getActiveTasksByCategory(user.id, categories[2]).then(tasks => readArr = tasks);
+        let watch = database.getActiveTasksByCategory(user.id, categories[3]).then(tasks => watchArr = tasks);
 
         Promise.all([eat, buy, read, watch]).then(() => {
           const templateVars = {
@@ -280,7 +113,7 @@ app.post('/register', (req, res) => {
     // to save list started as a guest, assume we have an existing userID from a guest cookie, then we'll update the DB rather than insert a new entry
     //check for existing email address...
     user.password = bcrypt.hashSync(user.password, 12);
-    convertGuestIntoUser(user, userID)
+    database.convertGuestIntoUser(user, userID)
       .then(user => {
         if (!user) {
           res.send({error: "error"});
@@ -294,7 +127,7 @@ app.post('/register', (req, res) => {
     // add a vanilla user
     //check for existing email address...
     user.password = bcrypt.hashSync(user.password, 12);
-    addUser(user)
+    database.addUser(user, 0)
       .then(user => {
         if (!user) {
           res.send({error: "error"});
@@ -309,7 +142,7 @@ app.post('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
-  login(email, password)
+  database.login(email, password)
     .then(user => {
       if (!user) {
         res.send('Error: invalid password');
@@ -318,7 +151,7 @@ app.post('/login', (req, res) => {
       req.session.userID = user.id;
       res.redirect('/');
     })
-    .catch(e => res.send('Error: invalid email address.'));
+    .catch(e => res.send('Error: invalid login.'));
 });
 
 
@@ -336,12 +169,12 @@ app.post("/:user_id/:task_id/archive", (req, res) => {
   if (!userID) {
     res.redirect('/');
   }
-  getUserWithId(userID)
+  database.getUserWithId(userID)
     .then(user => {
       if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         res.send('Error: you do not have permission to do this operation.');
       } else {
-        updateFieldOfTask(userID, req.params.task_id, 'active', false)
+        database.updateFieldOfTask(userID, req.params.task_id, 'active', false)
           .then(() => {
             res.redirect('/');
           });
@@ -354,12 +187,12 @@ app.delete("/:user_id/:task_id/", (req, res) => {
   if (!userID) {
     res.redirect('/');
   }
-  getUserWithId(userID)
+  database.getUserWithId(userID)
     .then(user => {
       if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         res.send('Error: you do not have permission to do this operation.');
       } else {
-        deleteTask(userID, req.params.task_id)
+        database.deleteTask(userID, req.params.task_id)
           .then(() => {
             res.redirect('/');
           });
@@ -373,12 +206,12 @@ app.post("/:user_id/:task_id/:category", (req, res) => {
   if (!userID) {
     res.redirect('/');
   }
-  getUserWithId(userID)
+  database.getUserWithId(userID)
     .then(user => {
       if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         res.send('Error: you do not have permission to do this operation.');
       } else {
-        updateFieldOfTask(userID, req.params.task_id, 'category', req.params.category)
+        database.updateFieldOfTask(userID, req.params.task_id, 'category', req.params.category)
           .then(() => {
             res.redirect('/');
           });
@@ -393,12 +226,12 @@ app.post("/:user_id/:task_id", (req, res) => {
   if (!userID) {
     res.redirect('/');
   }
-  getUserWithId(userID)
+  database.getUserWithId(userID)
     .then(user => {
       if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         res.send('Error: you do not have permission to do this operation.');
       } else {
-        updateFieldOfTask(userID, req.params.task_id, 'description', newDescription)
+        database.updateFieldOfTask(userID, req.params.task_id, 'description', newDescription)
           .then(() => {
             res.redirect('/');
           });
@@ -423,12 +256,12 @@ app.put("/user_id/add-task", (req, res) => {
   const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
   let mostRecentTaskID, task;
 
-  getUserWithId(userID)
+  database.getUserWithId(userID)
     .then(user => {
       //Check if user exists in database before adding
       if (!user) {
         console.log(user);
-        addUser({}, 1);
+        database.addUser({}, 1);
       } else if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         // res.send('Error: you do not have permission to do this operation.');
       }
@@ -436,7 +269,7 @@ app.put("/user_id/add-task", (req, res) => {
     })
     .then(user => {
       task = req.body["task"];
-      return addTask(user.id, task, category);
+      return database.addTask(user.id, task, category);
     })
     .then(latesttask => {
       userID = latesttask.user_id;

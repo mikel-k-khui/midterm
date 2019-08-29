@@ -261,7 +261,7 @@ app.put("/user_id/add-task", (req, res) => {
       //Check if user exists in database before adding
       if (!user) {
         console.log(user);
-        database.addUser({}, 1);
+        return database.addUser({}, 1);
       } else if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
         // res.send('Error: you do not have permission to do this operation.');
       }

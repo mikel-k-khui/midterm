@@ -121,22 +121,22 @@ const convertGuestIntoUser =  function(user, guestUserID) {
 };
 
 /* Start of DELETE queries */
-app.delete("/:user_id/:task_id/:category", (req, res) => {
-  if (!req.session.userID) {
-    res.redirect('/');
-  }
-  let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;';
-  console.log("Deleted task in ", req.params.category, "for", req.session.userID);
+// app.delete("/:user_id/:task_id/:category", (req, res) => {
+//   if (!req.session.userID) {
+//     res.redirect('/');
+//   }
+//   let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;';
+//   console.log("Deleted task in ", req.params.category, "for", req.session.userID);
 
-  db.query(queryStr, [req.session.userID, req.params.category])
-    .then(result => {
-      if (result.rows[0] === undefined) {
-        console.log("Deleted task in ", req.params.category, "\n", result.rows[0]);
-        res.redirect('/');
-      }
-    })
-    .catch(e => res.send(e));
-});
+//   db.query(queryStr, [req.session.userID, req.params.category])
+//     .then(result => {
+//       if (result.rows[0] === undefined) {
+//         console.log("Deleted task in ", req.params.category, "\n", result.rows[0]);
+//         res.redirect('/');
+//       }
+//     })
+//     .catch(e => res.send(e));
+// });
 
 app.delete("/:user_id/:task_id/", (req, res) => {
   console.log("Delete task");
@@ -152,19 +152,19 @@ app.delete("/:user_id/:task_id/", (req, res) => {
     .catch(e => res.send(e));
 });
 
-app.delete("/:user_id/", (req, res) => {
-  if (!req.session.userID) {
-    res.redirect('/');
-  }
-  let deleteStr = 'DELETE FROM users WHERE id=$1 RETURNING *;';
-  db.query(deleteStr, [req.session.userID])
-    .then(result => {
-      console.log("Deleted user", result.rows[0], "and cleared", req.session.userID);
-      req.session = null;
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
-});
+// app.delete("/:user_id/", (req, res) => {
+//   if (!req.session.userID) {
+//     res.redirect('/');
+//   }
+//   let deleteStr = 'DELETE FROM users WHERE id=$1 RETURNING *;';
+//   db.query(deleteStr, [req.session.userID])
+//     .then(result => {
+//       console.log("Deleted user", result.rows[0], "and cleared", req.session.userID);
+//       req.session = null;
+//       res.redirect('/');
+//     })
+//     .catch(e => res.send(e));
+// });
 
 /* Start of GET queries */
 // Home page
@@ -266,30 +266,10 @@ app.post('/login', (req, res) => {
       }
       req.session.userID = user.id;
       res.redirect('/');
-      // res.send({user: {name: user.full_name, email: user.email, id: user.id}});
     })
     .catch(e => res.send('Error: invalid email address.'));
 });
 
-// app.get("/login/:user_id", (req, res) => {
-//   let queryStr = `SELECT id FROM users WHERE id=$1;
-//   `;
-//   console.log("Start of GET/login any", req.session.userID);
-
-//   db.query(queryStr, [req.params.user_id])
-//     .then(user => {
-//       if (user.rows[0] === undefined) {
-//         res.redirect('/', {user: undefined});
-//       }
-//       req.session.userID = user.rows[0]["id"];
-//       console.log("Logged in for", req.session.userID);
-//       res.redirect('/');
-//     })
-//     .catch(e => {
-//       console.error(e);
-//       res.send(e);
-//     });
-// });
 
 app.get("/logout", (req, res) => {
   console.log("Logout");
@@ -297,51 +277,9 @@ app.get("/logout", (req, res) => {
   res.redirect('/');
 });
 
-// app.get("/:user_id", (req, res) => {
-//   if (req.session.userID) {
-//     let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
-//     `;
-//     console.log("Route for GET/:user_id w user=", req.session.userID);
-//     db.query(queryStr, [req.session.userID])
-//       .then(user => {
-//         console.log("Index 1st .then", user.rows[0]);
-//         res.render("index", {user: user.rows[0]});
-//       })
-//       .catch(e => {
-//         console.error(e);
-//         res.send(e);
-//       });
-//   } else {
-//     console.log("Route for GET/:user_id w no user=", req.session.userID);
-//     res.render("index", {user: undefined});
-//   }
-// });
-
-// app.get("/:user_id", (req, res) => {
-//   res.render("index");
-// });
-
-app.get("/:user_id/:list", (req, res) => {
-  if (req.session.userID) {
-    let queryStr = 'SELECT id, full_name FROM users WHERE id=$1;';
-    console.log("Route for GET/:user_id/:list w user=", req.session.userID);
-    db.query(queryStr, [req.session.userID])
-      .then(user => {
-        console.log("Index 1st .then", user.rows[0]);
-        res.render("index", {user: user.rows[0]});
-      })
-      .catch(e => {
-        console.error(e);
-        res.send(e);
-      });
-  } else {
-    console.log("Route for GET/:user_id/:list w no user=", req.session.userID);
-    res.render("index", {user: undefined});
-  }
-});
 
 /* start of POST queries */
-// Change category of task
+// Archive task
 app.post("/:user_id/:task_id/archive", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
@@ -379,9 +317,9 @@ app.post("/:user_id/:task_id", (req, res) => {
     res.redirect('/');
   }
   console.log("Edit task");
-  const new_description = 'my shborts';
+  const newDescription = 'Snacks';
   let queryStr = 'UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;';
-  db.query(queryStr, [new_description, req.session.userID, req.params.task_id])
+  db.query(queryStr, [newDescription, req.session.userID, req.params.task_id])
     .then(result => {
       console.log("Edited task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["description"]);
       res.redirect('/');
@@ -420,10 +358,10 @@ app.put("/user_id/add-task", (req, res) => {
 
   const categories = ['eat', 'buy', 'read', 'watch'];
   const categoryInfo = {
-    eat: { title: 'To Eat', buttonCode: ''},
-    buy: { title: 'To Buy', buttonCode: '<button class="btn btn-lg">To Buy <i class="fas fa-shopping-cart"></i></button>'},
-    read: { title: 'To Read', buttonCode: '<button class="btn btn-lg">To Read <i class="fas fa-book"></i></button>'},
-    watch: { title: 'To Watch', buttonCode: '<button class="btn btn-lg">To Watch <i class="fas fa-video"></i></button>'}
+    eat: { title: 'To Eat'},
+    buy: { title: 'To Buy'},
+    read: { title: 'To Read'},
+    watch: { title: 'To Watch'}
   };
 
   const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
@@ -491,5 +429,5 @@ app.put("/user_id/add-task", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
+  console.log(`Listify listening on port ${PORT}`);
 });

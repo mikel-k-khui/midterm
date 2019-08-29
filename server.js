@@ -15,13 +15,9 @@ const cookieSession = require('cookie-session');
 const bcrypt     = require('bcrypt');
 
 // PG database client/connection setup
-const { Pool } = require('pg');
-const dbParams = require('./lib/db.js');
-const db = new Pool(dbParams);
-db.connect();
+const database = require('./lib/db_all_queries');
 
 // Postgres SQL files
-// const { addTask } = require('./db/db_queries');
 
 // Load the logger first so all (static) HTTP requests are logged to STDOUT
 // 'dev' = Concise output colored by response status for development use.
@@ -53,87 +49,15 @@ app.use(cookieSession({
 
 // Separated Routes for each Resource
 // Note: Feel free to replace the example routes below with your own
-const usersRoutes = require("./routes/users");
+// const usersRoutes = require("./routes/users");
 // const widgetsRoutes = require("./routes/widgets");
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
-app.use("/api/users", usersRoutes(db));
+// app.use("/api/users", usersRoutes(db));
 // app.use("/api/widgets", widgetsRoutes(db));
 // Note: mount other resources here, using the same pattern above
 
-/* Start of function declarations, abstract away later */
-
-/**
- * Get a single user from the database given their email.
- * @param {String} email The email of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-const getUserWithEmail = function(email) {
-  let user;
-  const queryString = 'SELECT * from users where email = $1';
-  const values = email;
-  return db.query(queryString, [values])
-    .then(res => {
-      user = res.rows[0];
-      if (user) {
-        return user;
-      }
-      return null;
-    })
-    .catch(err => console.error('query error', err.stack));
-};
-
-/**
- * Check if a user exists with a given username and password
- * @param {String} email
- * @param {String} password encrypted
- */
-const login =  function(email, password) {
-  return getUserWithEmail(email)
-    .then(user => {
-      if (bcrypt.compareSync(password, user.password)) {
-        return user;
-      }
-      return null;
-    });
-};
-
-/**
- * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
- * @return {Promise<{}>} A promise to the user.
- */
-const addUser =  function(user) {
-  const createdAt = new Date(Date.now());
-  const queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
-  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password])
-    .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
-};
-
-const convertGuestIntoUser =  function(user, guestUserID) {
-  const createdAt = new Date(Date.now());
-  const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4 WHERE id = $5 RETURNING *;';
-  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
-    .then(res => res.rows[0])
-    .catch(err => console.error('query error', err.stack));
-};
-
-
-app.delete("/:user_id/:task_id/", (req, res) => {
-  console.log("Delete task");
-  if (!req.session.userID) {
-    res.redirect('/');
-  }
-  let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
-  db.query(queryStr, [req.session.userID, req.params.task_id])
-    .then(result => {
-      console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
-});
 
 /* Start of GET queries */
 // Home page
@@ -141,33 +65,24 @@ app.delete("/:user_id/:task_id/", (req, res) => {
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
   const userID = req.session.userID;
-  console.log(userID);
-
   if (userID) {
-    const userQueryString = 'SELECT id, full_name FROM users WHERE id=$1;';
-    console.log("Route for GET/ w user=", req.session.userID);
-    db.query(userQueryString, [req.session.userID])
+    database.getUserWithId(userID)
       .then(user => {
-        console.log("Index 1st .then", user.rows[0]);
-
         const categories = ['eat', 'buy', 'read', 'watch'];
-        const categoryQueryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
+
         let eatArr = [];
         let buyArr = [];
         let readArr = [];
         let watchArr = [];
-        const eat = db.query(categoryQueryString, [userID, categories[0]])
-          .then(res => eatArr = res.rows);
-        const buy = db.query(categoryQueryString, [userID, categories[1]])
-          .then(res => buyArr = res.rows);
-        const read = db.query(categoryQueryString, [userID, categories[2]])
-          .then(res => readArr = res.rows);
-        const watch = db.query(categoryQueryString, [userID, categories[3]])
-          .then(res => watchArr = res.rows);
+
+        let eat = database.getActiveTasksByCategory(user.id, categories[0]).then(tasks => eatArr = tasks);
+        let buy = database.getActiveTasksByCategory(user.id, categories[1]).then(tasks => buyArr = tasks);
+        let read = database.getActiveTasksByCategory(user.id, categories[2]).then(tasks => readArr = tasks);
+        let watch = database.getActiveTasksByCategory(user.id, categories[3]).then(tasks => watchArr = tasks);
 
         Promise.all([eat, buy, read, watch]).then(() => {
           const templateVars = {
-            user: user.rows[0],
+            user: user,
             eats: eatArr,
             buys: buyArr,
             reads: readArr,
@@ -198,7 +113,7 @@ app.post('/register', (req, res) => {
     // to save list started as a guest, assume we have an existing userID from a guest cookie, then we'll update the DB rather than insert a new entry
     //check for existing email address...
     user.password = bcrypt.hashSync(user.password, 12);
-    convertGuestIntoUser(user, userID)
+    database.convertGuestIntoUser(user, userID)
       .then(user => {
         if (!user) {
           res.send({error: "error"});
@@ -212,7 +127,7 @@ app.post('/register', (req, res) => {
     // add a vanilla user
     //check for existing email address...
     user.password = bcrypt.hashSync(user.password, 12);
-    addUser(user)
+    database.addUser(user, 0)
       .then(user => {
         if (!user) {
           res.send({error: "error"});
@@ -227,7 +142,7 @@ app.post('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
   const {email, password} = req.body;
-  login(email, password)
+  database.login(email, password)
     .then(user => {
       if (!user) {
         res.send('Error: invalid password');
@@ -236,7 +151,7 @@ app.post('/login', (req, res) => {
       req.session.userID = user.id;
       res.redirect('/');
     })
-    .catch(e => res.send('Error: invalid email address.'));
+    .catch(e => res.send('Error: invalid login.'));
 });
 
 
@@ -247,61 +162,88 @@ app.get("/logout", (req, res) => {
 });
 
 
-/* start of POST queries */
+/* start of POST/DELETE queries */
 // Archive task
 app.post("/:user_id/:task_id/archive", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  if (!userID) {
     res.redirect('/');
   }
-
-  let queryStr = 'UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-  console.log('false', req.params.task_d, req.session.userID);
-  db.query(queryStr, ['false', req.params.task_id, req.session.userID])
-    .then(result => {
-      console.log("Archived task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
-      res.redirect('/');
+  database.getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        database.updateFieldOfTask(userID, req.params.task_id, 'active', false)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
     });
-  // .catch(e => res.send(e));
+});
+
+app.delete("/:user_id/:task_id/", (req, res) => {
+  const userID = req.session.userID;
+  if (!userID) {
+    res.redirect('/');
+  }
+  database.getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        database.deleteTask(userID, req.params.task_id)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
+    });
 });
 
 // Change category of task
 app.post("/:user_id/:task_id/:category", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  if (!userID) {
     res.redirect('/');
   }
-
-  let queryStr = 'UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-  console.log(req.params.category, req.params.task_d, req.session.userID);
-  db.query(queryStr, [req.params.category, req.params.task_id, req.session.userID])
-    .then(result => {
-      console.log("Edited task's category", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
-      res.redirect('/');
+  database.getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        database.updateFieldOfTask(userID, req.params.task_id, 'category', req.params.category)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
     });
-  // .catch(e => res.send(e));
 });
 
-//Change description of task: current default to manual
+//Change description of task: currently defaults to manual
 app.post("/:user_id/:task_id", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  const newDescription = 'Snacks';
+  if (!userID) {
     res.redirect('/');
   }
-  console.log("Edit task");
-  const newDescription = 'Snacks';
-  let queryStr = 'UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;';
-  db.query(queryStr, [newDescription, req.session.userID, req.params.task_id])
-    .then(result => {
-      console.log("Edited task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["description"]);
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
+  database.getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        database.updateFieldOfTask(userID, req.params.task_id, 'description', newDescription)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
+    });
 });
 
 /* Start of PUT queries */
 /* PUT query add new tasks to a user's list(s) */
 app.put("/user_id/add-task", (req, res) => {
-  const created_at = new Date(Date.now());
-  let queryStr = 'SELECT id FROM users WHERE id=$1;';
-  console.log("Start of GET/login", req.session.userID);
+  let userID = req.session.userID;
+  // console.log("Start of GET/login", req.session.userID);
 
   const categories = ['eat', 'buy', 'read', 'watch'];
   const categoryInfo = {
@@ -314,34 +256,25 @@ app.put("/user_id/add-task", (req, res) => {
   const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
   let mostRecentTaskID, task;
 
-  db.query(queryStr, [req.session.userID])
+  database.getUserWithId(userID)
     .then(user => {
       //Check if user exists in database before adding
-      if (user.rows[0] === undefined) {
-        console.log("Before insert to user", user.rows[0]);
-        const insertStr = 'INSERT INTO users (full_name, email, created_at, password) VALUES (NULL, NULL, $1, NULL) RETURNING *;';
-        return db.query(insertStr,[created_at.toUTCString()]);
-      } else {
-        return user;
+      if (!user) {
+        console.log(user);
+        return database.addUser({}, 1);
+      } else if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        // res.send('Error: you do not have permission to do this operation.');
       }
+      return user;
     })
     .then(user => {
-      // console.log('category', category, 'task', task);
       task = req.body["task"];
-      const insertStr = 'INSERT INTO tasks (user_id, last_modified, description, category) VALUES ($1, $2, $3, $4) RETURNING *;';
-      console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), task, category);
-      return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), task, category]);
+      return database.addTask(user.id, task, category);
     })
-    .then(task => {
-      req.session.userID = task.rows[0]["user_id"];
-      console.log("1st .then of insert = added task okay", task.rows[0]["user_id"], "vs userID:", req.session.userID);
-      mostRecentTaskID = task.rows.slice(-1)[0].id; // get latest task ID
-      return db.query('SELECT * FROM tasks WHERE user_id = $1;', [task.rows[0]["user_id"]]);
-    })
-    .then(tasks => {
-      console.log("2nd .then of insert to return list of items", tasks.rows);
-      // res.redirect("/");
-      const userID = tasks.rows.slice(-1)[0].user_id;
+    .then(latesttask => {
+      userID = latesttask.user_id;
+      req.session.userID = userID;
+      mostRecentTaskID = latesttask.id;
       const buttonsHTML = {
         eat: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/eat">To Eat <i class="fas fa-utensils"></i></button>',
         buy: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/buy">To Buy <i class="fas fa-shopping-cart"></i></button>',
@@ -356,9 +289,9 @@ app.put("/user_id/add-task", (req, res) => {
         }
       } // get three 'remaining' categories
 
-      res.json(
+      return res.json(
         {
-          task: task,
+          task: latesttask.description,
           userID: userID,
           taskID: mostRecentTaskID,
           category: categoryInfo[category]["title"],

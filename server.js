@@ -125,8 +125,7 @@ app.delete("/:user_id/:task_id/:category", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
-  let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;
-  `;
+  let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;';
   console.log("Deleted task in ", req.params.category, "for", req.session.userID);
 
   db.query(queryStr, [req.session.userID, req.params.category])
@@ -144,8 +143,7 @@ app.delete("/:user_id/:task_id/", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
-  let queryStr = `DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;
-  `;
+  let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
   db.query(queryStr, [req.session.userID, req.params.task_id])
     .then(result => {
       console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
@@ -158,8 +156,7 @@ app.delete("/:user_id/", (req, res) => {
   if (!req.session.userID) {
     res.redirect('/');
   }
-  let deleteStr = `DELETE FROM users WHERE id=$1 RETURNING *;
-  `;
+  let deleteStr = 'DELETE FROM users WHERE id=$1 RETURNING *;';
   db.query(deleteStr, [req.session.userID])
     .then(result => {
       console.log("Deleted user", result.rows[0], "and cleared", req.session.userID);
@@ -178,8 +175,7 @@ app.get("/", (req, res) => {
   console.log(userID);
 
   if (userID) {
-    const userQueryString = `SELECT id, full_name FROM users WHERE id=$1;
-    `;
+    const userQueryString = 'SELECT id, full_name FROM users WHERE id=$1;';
     console.log("Route for GET/ w user=", req.session.userID);
     db.query(userQueryString, [req.session.userID])
       .then(user => {
@@ -327,8 +323,7 @@ app.get("/logout", (req, res) => {
 
 app.get("/:user_id/:list", (req, res) => {
   if (req.session.userID) {
-    let queryStr = `SELECT id, full_name FROM users WHERE id=$1;
-    `;
+    let queryStr = 'SELECT id, full_name FROM users WHERE id=$1;';
     console.log("Route for GET/:user_id/:list w user=", req.session.userID);
     db.query(queryStr, [req.session.userID])
       .then(user => {
@@ -352,8 +347,7 @@ app.post("/:user_id/:task_id/archive", (req, res) => {
     res.redirect('/');
   }
 
-  let queryStr = `UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;
-  `;
+  let queryStr = 'UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
   console.log('false', req.params.task_d, req.session.userID);
   db.query(queryStr, ['false', req.params.task_id, req.session.userID])
     .then(result => {
@@ -369,8 +363,7 @@ app.post("/:user_id/:task_id/:category", (req, res) => {
     res.redirect('/');
   }
 
-  let queryStr = `UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;
-  `;
+  let queryStr = 'UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
   console.log(req.params.category, req.params.task_d, req.session.userID);
   db.query(queryStr, [req.params.category, req.params.task_id, req.session.userID])
     .then(result => {
@@ -387,8 +380,7 @@ app.post("/:user_id/:task_id", (req, res) => {
   }
   console.log("Edit task");
   const new_description = 'my shborts';
-  let queryStr = `UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;
-  `;
+  let queryStr = 'UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;';
   db.query(queryStr, [new_description, req.session.userID, req.params.task_id])
     .then(result => {
       console.log("Edited task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["description"]);
@@ -423,8 +415,7 @@ app.post("/:user_id/:task_id", (req, res) => {
 /* PUT query add new tasks to a user's list(s) */
 app.put("/user_id/add-task", (req, res) => {
   const created_at = new Date(Date.now());
-  let queryStr = `SELECT id FROM users WHERE id=$1;
-  `;
+  let queryStr = 'SELECT id FROM users WHERE id=$1;';
   console.log("Start of GET/login", req.session.userID);
 
   const categories = ['eat', 'buy', 'read', 'watch'];
@@ -443,10 +434,7 @@ app.put("/user_id/add-task", (req, res) => {
       //Check if user exists in database before adding
       if (user.rows[0] === undefined) {
         console.log("Before insert to user", user.rows[0]);
-        const insertStr = `INSERT INTO users (full_name, email, created_at, password)
-          VALUES (NULL, NULL, $1, NULL)
-          RETURNING *;
-          `;
+        const insertStr = 'INSERT INTO users (full_name, email, created_at, password) VALUES (NULL, NULL, $1, NULL) RETURNING *;';
         return db.query(insertStr,[created_at.toUTCString()]);
       } else {
         return user;
@@ -455,10 +443,7 @@ app.put("/user_id/add-task", (req, res) => {
     .then(user => {
       // console.log('category', category, 'task', task);
       task = req.body["task"];
-      const insertStr = `INSERT INTO tasks (user_id, last_modified, description, category)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *;
-        `;
+      const insertStr = 'INSERT INTO tasks (user_id, last_modified, description, category) VALUES ($1, $2, $3, $4) RETURNING *;';
       console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), task, category);
       return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), task, category]);
     })
@@ -466,7 +451,7 @@ app.put("/user_id/add-task", (req, res) => {
       req.session.userID = task.rows[0]["user_id"];
       console.log("1st .then of insert = added task okay", task.rows[0]["user_id"], "vs userID:", req.session.userID);
       mostRecentTaskID = task.rows.slice(-1)[0].id; // get latest task ID
-      return db.query(`SELECT * FROM tasks WHERE user_id = $1;`, [task.rows[0]["user_id"]]);
+      return db.query('SELECT * FROM tasks WHERE user_id = $1;', [task.rows[0]["user_id"]]);
     })
     .then(tasks => {
       console.log("2nd .then of insert to return list of items", tasks.rows);

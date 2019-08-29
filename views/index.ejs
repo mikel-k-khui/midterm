@@ -21,19 +21,68 @@
 
       <header class="navbar">
         <section class="navbar-section">
-          <a href="/" class="navbar-brand mr-2"><h1><img src="/Listify.svg" width="32" height="32" />Listify</h1></a>
+          <a href="/" class="navbar-brand mr-2 mt-2"><h1><img src="/Listify.svg" width="32" height="32" />Listify</h1></a>
         </section>
         <section class="navbar-section">
           <% if (user) { %>
             <% if (user.full_name) { %>
               Welcome, <%= user.full_name %> <a href="/logout" class="btn btn-primary ml-2">Logout</a>
             <% } else { %>
-              Welcome, guest <form method="POST" action="/<%= user.id %>">
-                <button type="submit" class="btn btn-primary  ml-2">Sign up to save list</button></form>
+              Welcome, guest
+              <button class="btn btn-primary modal-toggle ml-2" data-modal="#register">Register to save list</button> <a href="/logout" class="btn btn-primary ml-2">Cancel</a>
             <% } %>
           <% } else { %>
-            <a href="/login/2" class="btn btn-primary">Login</a>
-          <% } %>
+          <button class="btn btn-primary modal-toggle ml-2" data-modal="#login">Login</button>
+          <button class="btn btn-primary modal-toggle ml-2" data-modal="#register">Register</button>
+          <div class="modal modal-sm" id="login">
+              <a href="#close" class="modal-overlay modal-close" aria-label="Close"></a>
+              <div class="modal-container">
+                  <div class="modal-header">
+                      <a class="btn btn-clear close-modal float-right modal-close" aria-label="Close"></a>
+                      <div class="modal-title h5">Login</div>
+                  </div>
+                  <form method="POST" action="/login">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label" for="login-email">Email address</label>
+                            <input required class="form-input" type="email" name="email" id="login-email" placeholder="Email address">
+                            <label class="form-label" for="login-password">Password</label>
+                            <input required class="form-input" type="password" name="password" id="login-password" placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-primary" type="submit">Submit</button>
+                      <a class="btn btn-link modal-close" aria-label="Close">Close</a>
+                    </div>
+                  </form>
+              </div>
+            </div>
+              <% } %>
+              <div class="modal modal-sm" id="register">
+                  <a href="#close" class="modal-overlay modal-close" aria-label="Close"></a>
+                  <div class="modal-container">
+                      <div class="modal-header">
+                          <a class="btn btn-clear close-modal float-right modal-close" aria-label="Close"></a>
+                          <div class="modal-title h5">Register</div>
+                      </div>
+                      <form method="POST" action="/register">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label" for="register-name">Name</label>
+                                <input required class="form-input" type="text" id="register-name" placeholder="Full name" name="fullname">
+                                <label class="form-label" for="register-email">Email address</label>
+                                <input required class="form-input" type="text" id="register-email" placeholder="Email address" name="email">
+                                <label class="form-label" for="register-password">Password</label>
+                                <input required class="form-input" type="password" id="register-password" placeholder="Password" name="password">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button class="btn btn-primary" type="submit">Submit</button>
+                          <a class="btn btn-link modal-close" aria-label="Close">Close</a>
+                        </div>
+                      </form>
+                  </div>
+                </div>
             </section>
           </header>
 
@@ -41,15 +90,17 @@
 
     <!-- form input control -->
     <div class="column col-12">
-        <form method="POST" action="/user_id/add-task?_method=PUT">
+        <form method="POST" action="/user_id/add-task?_method=PUT" id="newtask">
         <label class="form-label text-center" for="task-to-add"><h2>Add a new item:</h2></label>
         <div class="input-group">
-          <input class="form-input" type="text" id="task-to-add" name="task" placeholder="">
+          <input class="form-input" type="text" id="task-to-add" name="task" placeholder="" required>
           <button class="btn btn-primary input-group-btn" type="submit">Add</button>
         </div>
     </form>
-    <p class="text-center mt-2">Type the name of a movie, book, place to eat, or item to purchase, and we’ll do our best to automatically categorize it for you.</p>
+    <p class="text-center mt-2">Type the name of a movie, book, place to eat, or item to purchase, and we’ll do our best to  categorize it for you.</p>
     </div>
+
+    <% include partials/_changeCategory %>
 
     <% if (user) { %>
       <% include partials/_listedItems %>

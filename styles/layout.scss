@@ -13,10 +13,6 @@
 
 body {
   background-color: var(--beige) !important;
-
-  h1 {
-    // color: var(--dark-blue);
-  }
 }
 
 header .navbar-section h1 img {
@@ -114,4 +110,9 @@ header .navbar-section h1 img {
   width: 50%;
   max-width: 300px;
   margin: 5% 0;
+}
+
+#submitted-item {
+  display: none;
+  margin-bottom: 2em;
 }

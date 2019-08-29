@@ -18,6 +18,7 @@ $(document).ready(() => {
         $('#task-to-add').val(''); // clear form (could use better DOM tree traversal)
         $('#added-item').text(response.task);
         $('#added-list').text(response.category);
+        $('#added-certainty').text(response.certainty);
 
         const $editButtons = $('.changecat');
         $editButtons.empty();

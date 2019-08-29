@@ -247,7 +247,7 @@ app.put("/user_id/add-task", (req, res) => {
   let userID = req.session.userID;
   let task = req.body["task"];
   let assignCategory = {};
-  let mostRecentTaskID;
+  let mostRecentTaskID, certainty;
 
   const categories = ['eat', 'buy', 'read', 'watch'];
   const categoryInfo = {
@@ -260,8 +260,10 @@ app.put("/user_id/add-task", (req, res) => {
 
   api.getTaxonomy(task)
     .then(cat => {
+      console.log('input item', task);
       console.log(cat);
-      assignCategory = cat["category"]
+      assignCategory = cat["category"];
+      certainty = Math.round(Number(cat["confidence_score"]) * 100);
       return database.getUserWithId(userID);
     })
     .then(user => {
@@ -301,6 +303,7 @@ app.put("/user_id/add-task", (req, res) => {
           userID: userID,
           taskID: mostRecentTaskID,
           category: categoryInfo[assignCategory]["title"],
+          certainty: certainty,
           button1: buttonsHTML[buttons[0]],
           button2: buttonsHTML[buttons[1]],
           button3: buttonsHTML[buttons[2]]

@@ -85,6 +85,26 @@ const getUserWithEmail = function(email) {
 };
 
 /**
+ * Get a single user from the database given their id.
+ * @param {string} id The id of the user.
+ * @return {Promise<{}>} A promise to the user.
+ */
+const getUserWithId = function(id) {
+  let user;
+  const queryString = 'SELECT * from users where id = $1';
+  const values = id;
+  return db.query(queryString, [values])
+    .then(res => {
+      user = res.rows[0];
+      if (user) {
+        return user;
+      }
+      return null;
+    })
+    .catch(err => console.error('query error', err.stack));
+};
+
+/**
  * Check if a user exists with a given username and password
  * @param {String} email
  * @param {String} password encrypted
@@ -141,14 +161,15 @@ app.delete("/:user_id/:task_id/", (req, res) => {
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
   const userID = req.session.userID;
-  console.log(userID);
+  console.log('my user id is', userID);
 
   if (userID) {
-    const userQueryString = 'SELECT id, full_name FROM users WHERE id=$1;';
-    console.log("Route for GET/ w user=", req.session.userID);
-    db.query(userQueryString, [req.session.userID])
+    // const userQueryString = 'SELECT id, full_name FROM users WHERE id=$1;';
+    // console.log("Route for GET/ w user=", req.session.userID);
+    // db.query(userQueryString, [req.session.userID])
+    getUserWithId(userID)
       .then(user => {
-        console.log("Index 1st .then", user.rows[0]);
+        console.log("Index 1st .then", user);
 
         const categories = ['eat', 'buy', 'read', 'watch'];
         const categoryQueryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
@@ -156,18 +177,18 @@ app.get("/", (req, res) => {
         let buyArr = [];
         let readArr = [];
         let watchArr = [];
-        const eat = db.query(categoryQueryString, [userID, categories[0]])
+        const eat = db.query(categoryQueryString, [user.id, categories[0]])
           .then(res => eatArr = res.rows);
-        const buy = db.query(categoryQueryString, [userID, categories[1]])
+        const buy = db.query(categoryQueryString, [user.id, categories[1]])
           .then(res => buyArr = res.rows);
-        const read = db.query(categoryQueryString, [userID, categories[2]])
+        const read = db.query(categoryQueryString, [user.id, categories[2]])
           .then(res => readArr = res.rows);
-        const watch = db.query(categoryQueryString, [userID, categories[3]])
+        const watch = db.query(categoryQueryString, [user.id, categories[3]])
           .then(res => watchArr = res.rows);
 
         Promise.all([eat, buy, read, watch]).then(() => {
           const templateVars = {
-            user: user.rows[0],
+            user: user,
             eats: eatArr,
             buys: buyArr,
             reads: readArr,
@@ -300,6 +321,7 @@ app.post("/:user_id/:task_id", (req, res) => {
 /* PUT query add new tasks to a user's list(s) */
 app.put("/user_id/add-task", (req, res) => {
   const created_at = new Date(Date.now());
+  const userID = req.session.userID;
   let queryStr = 'SELECT id FROM users WHERE id=$1;';
   console.log("Start of GET/login", req.session.userID);
 

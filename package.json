@@ -26,7 +26,7 @@
     "paralleldots": "^3.2.4",
     "pg": "^6.4.2",
     "pg-native": "^3.0.0",
-    "spectre.css": "^0.5.8",
+    "spectre.css": "^0.5.8"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"

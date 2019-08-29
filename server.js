@@ -16,6 +16,8 @@ const bcrypt     = require('bcrypt');
 
 // PG database client/connection setup
 const database = require('./lib/db_all_queries');
+const api = require('./lib/api');
+require('./lib/constant');
 
 // Postgres SQL files
 
@@ -243,7 +245,9 @@ app.post("/:user_id/:task_id", (req, res) => {
 /* PUT query add new tasks to a user's list(s) */
 app.put("/user_id/add-task", (req, res) => {
   let userID = req.session.userID;
-  // console.log("Start of GET/login", req.session.userID);
+  let task = req.body["task"];
+  let assignCategory = {};
+  let mostRecentTaskID;
 
   const categories = ['eat', 'buy', 'read', 'watch'];
   const categoryInfo = {
@@ -253,10 +257,13 @@ app.put("/user_id/add-task", (req, res) => {
     watch: { title: 'To Watch'}
   };
 
-  const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
-  let mostRecentTaskID, task;
 
-  database.getUserWithId(userID)
+  api.getTaxonomy(task)
+    .then(cat => {
+      console.log(cat);
+      assignCategory = cat["category"]
+      return database.getUserWithId(userID);
+    })
     .then(user => {
       //Check if user exists in database before adding
       if (!user) {
@@ -268,8 +275,7 @@ app.put("/user_id/add-task", (req, res) => {
       return user;
     })
     .then(user => {
-      task = req.body["task"];
-      return database.addTask(user.id, task, category);
+      return database.addTask(user.id, task, assignCategory);
     })
     .then(latesttask => {
       userID = latesttask.user_id;
@@ -284,7 +290,7 @@ app.put("/user_id/add-task", (req, res) => {
 
       let buttons = [];
       for (let i = 0; i < categories.length; i++) {
-        if (categories[i] !== category) {
+        if (categories[i] !== assignCategory) {
           buttons.push(categories[i]);
         }
       } // get three 'remaining' categories
@@ -294,7 +300,7 @@ app.put("/user_id/add-task", (req, res) => {
           task: latesttask.description,
           userID: userID,
           taskID: mostRecentTaskID,
-          category: categoryInfo[category]["title"],
+          category: categoryInfo[assignCategory]["title"],
           button1: buttonsHTML[buttons[0]],
           button2: buttonsHTML[buttons[1]],
           button3: buttonsHTML[buttons[2]]

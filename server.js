@@ -120,23 +120,6 @@ const convertGuestIntoUser =  function(user, guestUserID) {
     .catch(err => console.error('query error', err.stack));
 };
 
-/* Start of DELETE queries */
-// app.delete("/:user_id/:task_id/:category", (req, res) => {
-//   if (!req.session.userID) {
-//     res.redirect('/');
-//   }
-//   let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND category=$2 RETURNING *;';
-//   console.log("Deleted task in ", req.params.category, "for", req.session.userID);
-
-//   db.query(queryStr, [req.session.userID, req.params.category])
-//     .then(result => {
-//       if (result.rows[0] === undefined) {
-//         console.log("Deleted task in ", req.params.category, "\n", result.rows[0]);
-//         res.redirect('/');
-//       }
-//     })
-//     .catch(e => res.send(e));
-// });
 
 app.delete("/:user_id/:task_id/", (req, res) => {
   console.log("Delete task");
@@ -151,20 +134,6 @@ app.delete("/:user_id/:task_id/", (req, res) => {
     })
     .catch(e => res.send(e));
 });
-
-// app.delete("/:user_id/", (req, res) => {
-//   if (!req.session.userID) {
-//     res.redirect('/');
-//   }
-//   let deleteStr = 'DELETE FROM users WHERE id=$1 RETURNING *;';
-//   db.query(deleteStr, [req.session.userID])
-//     .then(result => {
-//       console.log("Deleted user", result.rows[0], "and cleared", req.session.userID);
-//       req.session = null;
-//       res.redirect('/');
-//     })
-//     .catch(e => res.send(e));
-// });
 
 /* Start of GET queries */
 // Home page
@@ -326,28 +295,6 @@ app.post("/:user_id/:task_id", (req, res) => {
     })
     .catch(e => res.send(e));
 });
-
-//Change user name, email and password
-// app.post("/:user_id", (req, res) => {
-//   console.log("Edit user", req.session.userID);
-
-//   if (!req.session.userID) {
-//     console.log("No user?", req.session.userID);
-//     res.redirect('/');
-//   }
-
-//   const password = '$2a$10$FB/BOAVhpuLvpOREQVmvmezD4ED/.JBIDRh70tGevYzYzQgFId2u.';
-//   const new_name = 'Nathasa Romanova';
-//   const new_email = 'black.widow@avengers.org';
-//   let queryStr = `UPDATE users SET full_name = $1, email = $2, password = $3 WHERE id=$4 RETURNING *;
-//   `;
-//   // db.query(queryStr, [req.body["new_name"], req.body["new_email"], password, req.session.userID])
-//   db.query(queryStr, [new_name, new_email, password, req.session.userID])
-//     .then(result => {
-//       res.redirect('/');
-//     })
-//     .catch(e => res.send(e));
-// });
 
 /* Start of PUT queries */
 /* PUT query add new tasks to a user's list(s) */

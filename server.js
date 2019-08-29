@@ -343,17 +343,6 @@ app.delete("/:user_id/:task_id/", (req, res) => {
           });
       }
     });
-  // console.log("Delete task");
-  // if (!req.session.userID) {
-  //   res.redirect('/');
-  // }
-  // let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
-  // db.query(queryStr, [req.session.userID, req.params.task_id])
-  //   .then(result => {
-  //     console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
-  //     res.redirect('/');
-  //   })
-  //   .catch(e => res.send(e));
 });
 
 // Change category of task

@@ -21,7 +21,6 @@ const db = new Pool(dbParams);
 db.connect();
 
 // Postgres SQL files
-// const { addTask } = require('./db/db_queries');
 
 // Load the logger first so all (static) HTTP requests are logged to STDOUT
 // 'dev' = Concise output colored by response status for development use.
@@ -124,10 +123,18 @@ const login = function(email, password) {
  * @param {{full_name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser = function(user) {
+const addUser = function(user, guest) {
   const createdAt = new Date(Date.now());
-  const queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
-  return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password])
+  let params = [];
+  let queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
+
+  if (guest === 1) {
+    queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES (NULL, NULL, $1, NULL) RETURNING *;';
+    params = [createdAt.toUTCString()];
+  } else {
+    params = [user.fullname, user.email, createdAt.toUTCString(), user.password];
+  }
+  return db.query(queryString, params)
     .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
 };
@@ -142,6 +149,21 @@ const convertGuestIntoUser = function(user, guestUserID) {
   const createdAt = new Date(Date.now());
   const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4 WHERE id = $5 RETURNING *;';
   return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
+    .then(res => res.rows[0])
+    .catch(err => console.error('query error', err.stack));
+};
+
+/**
+ * Add a task to the database
+ * @param {int} userID
+ * @param {string} description
+ * @param {string} category
+ * @return {Promise<{}>} A promise to the user.
+ */
+const addTask = function(userID, description, category) {
+  const createdAt = new Date(Date.now());
+  const queryString = 'INSERT INTO tasks (user_id, last_modified, description, category) VALUES ($1, $2, $3, $4) RETURNING *;';
+  return db.query(queryString, [userID, createdAt.toUTCString(), description, category])
     .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
 };
@@ -387,10 +409,8 @@ app.post("/:user_id/:task_id", (req, res) => {
 /* Start of PUT queries */
 /* PUT query add new tasks to a user's list(s) */
 app.put("/user_id/add-task", (req, res) => {
-  const created_at = new Date(Date.now());
-  const userID = req.session.userID;
-  let queryStr = 'SELECT id FROM users WHERE id=$1;';
-  console.log("Start of GET/login", req.session.userID);
+  let userID = req.session.userID;
+  // console.log("Start of GET/login", req.session.userID);
 
   const categories = ['eat', 'buy', 'read', 'watch'];
   const categoryInfo = {
@@ -403,34 +423,25 @@ app.put("/user_id/add-task", (req, res) => {
   const category = categories[Math.floor(Math.random() * categories.length)]; // choose a random category
   let mostRecentTaskID, task;
 
-  db.query(queryStr, [req.session.userID])
+  getUserWithId(userID)
     .then(user => {
       //Check if user exists in database before adding
-      if (user.rows[0] === undefined) {
-        console.log("Before insert to user", user.rows[0]);
-        const insertStr = 'INSERT INTO users (full_name, email, created_at, password) VALUES (NULL, NULL, $1, NULL) RETURNING *;';
-        return db.query(insertStr,[created_at.toUTCString()]);
-      } else {
-        return user;
+      if (!user) {
+        console.log(user);
+        addUser({}, 1);
+      } else if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        // res.send('Error: you do not have permission to do this operation.');
       }
+      return user;
     })
     .then(user => {
-      // console.log('category', category, 'task', task);
       task = req.body["task"];
-      const insertStr = 'INSERT INTO tasks (user_id, last_modified, description, category) VALUES ($1, $2, $3, $4) RETURNING *;';
-      console.log("Before add SQL:", user.rows[0]["id"], created_at.toUTCString(), task, category);
-      return db.query(insertStr, [user.rows[0]["id"], created_at.toUTCString(), task, category]);
+      return addTask(user.id, task, category);
     })
-    .then(task => {
-      req.session.userID = task.rows[0]["user_id"];
-      console.log("1st .then of insert = added task okay", task.rows[0]["user_id"], "vs userID:", req.session.userID);
-      mostRecentTaskID = task.rows.slice(-1)[0].id; // get latest task ID
-      return db.query('SELECT * FROM tasks WHERE user_id = $1;', [task.rows[0]["user_id"]]);
-    })
-    .then(tasks => {
-      console.log("2nd .then of insert to return list of items", tasks.rows);
-      // res.redirect("/");
-      const userID = tasks.rows.slice(-1)[0].user_id;
+    .then(latesttask => {
+      userID = latesttask.user_id;
+      req.session.userID = userID;
+      mostRecentTaskID = latesttask.id;
       const buttonsHTML = {
         eat: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/eat">To Eat <i class="fas fa-utensils"></i></button>',
         buy: '<button type="submit" class="btn btn-lg" formaction="/' + userID + '/' + mostRecentTaskID + '/buy">To Buy <i class="fas fa-shopping-cart"></i></button>',
@@ -445,9 +456,9 @@ app.put("/user_id/add-task", (req, res) => {
         }
       } // get three 'remaining' categories
 
-      res.json(
+      return res.json(
         {
-          task: task,
+          task: latesttask.description,
           userID: userID,
           taskID: mostRecentTaskID,
           category: categoryInfo[category]["title"],

@@ -163,7 +163,8 @@ const getActiveTasksByCategory = function(userid, category) {
  * Update task category for a corresponding user
  * @param {int} userid
  * @param {int} taskid
- * @param {string} newcategory
+ * @param {string} fieldToUpdate
+ * @param {string} newValue
  * @return {Promise<{}>} A promise to the user.
  */
 const updateFieldOfTask = function(userid, taskid, fieldToUpdate, newValue) {
@@ -185,25 +186,23 @@ const updateFieldOfTask = function(userid, taskid, fieldToUpdate, newValue) {
     .catch(err => console.error('query error', err.stack));
 };
 
+/**
+ * Delete given task for a corresponding user
+ * @param {int} userid
+ * @param {int} taskid
+ * @return {Promise<{}>} A promise to the user.
+ */
+const deleteTask = function(userid, taskid) {
+  const queryString = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
+  return db.query(queryString, [userid, taskid])
+    .then(res => res.rows)
+    .catch(err => console.error('query error', err.stack));
+};
 
 
 
 
 
-
-app.delete("/:user_id/:task_id/", (req, res) => {
-  console.log("Delete task");
-  if (!req.session.userID) {
-    res.redirect('/');
-  }
-  let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
-  db.query(queryStr, [req.session.userID, req.params.task_id])
-    .then(result => {
-      console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
-});
 
 /* Start of GET queries */
 // Home page
@@ -308,7 +307,7 @@ app.get("/logout", (req, res) => {
 });
 
 
-/* start of POST queries */
+/* start of POST/DELETE queries */
 // Archive task
 app.post("/:user_id/:task_id/archive", (req, res) => {
   const userID = req.session.userID;
@@ -326,6 +325,35 @@ app.post("/:user_id/:task_id/archive", (req, res) => {
           });
       }
     });
+});
+
+app.delete("/:user_id/:task_id/", (req, res) => {
+  const userID = req.session.userID;
+  if (!userID) {
+    res.redirect('/');
+  }
+  getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        deleteTask(userID, req.params.task_id)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
+    });
+  // console.log("Delete task");
+  // if (!req.session.userID) {
+  //   res.redirect('/');
+  // }
+  // let queryStr = 'DELETE FROM tasks WHERE user_id=$1 AND id=$2 RETURNING *;';
+  // db.query(queryStr, [req.session.userID, req.params.task_id])
+  //   .then(result => {
+  //     console.log("Deleted task", result.rows[0], "and cleared", req.params.task_id);
+  //     res.redirect('/');
+  //   })
+  //   .catch(e => res.send(e));
 });
 
 // Change category of task

@@ -159,8 +159,31 @@ const getActiveTasksByCategory = function(userid, category) {
     .catch(err => console.error('query error', err.stack));
 };
 
-
-
+/**
+ * Update task category for a corresponding user
+ * @param {int} userid
+ * @param {int} taskid
+ * @param {string} newcategory
+ * @return {Promise<{}>} A promise to the user.
+ */
+const updateFieldOfTask = function(userid, taskid, fieldToUpdate, newValue) {
+  let queryString;
+  switch (fieldToUpdate) {
+  case 'category':
+    queryString = 'UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
+    break;
+  case 'active':
+    queryString = 'UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
+    break;
+  case 'description':
+    queryString = 'UPDATE tasks SET description = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
+    break;
+  default:
+  }
+  return db.query(queryString, [newValue, taskid, userid])
+    .then(res => res.rows)
+    .catch(err => console.error('query error', err.stack));
+};
 
 
 
@@ -288,50 +311,60 @@ app.get("/logout", (req, res) => {
 /* start of POST queries */
 // Archive task
 app.post("/:user_id/:task_id/archive", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  if (!userID) {
     res.redirect('/');
   }
-
-  let queryStr = 'UPDATE tasks SET active = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-  console.log('false', req.params.task_d, req.session.userID);
-  db.query(queryStr, ['false', req.params.task_id, req.session.userID])
-    .then(result => {
-      console.log("Archived task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
-      res.redirect('/');
+  getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        updateFieldOfTask(userID, req.params.task_id, 'active', false)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
     });
-  // .catch(e => res.send(e));
 });
 
 // Change category of task
 app.post("/:user_id/:task_id/:category", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  if (!userID) {
     res.redirect('/');
   }
-
-  let queryStr = 'UPDATE tasks SET category = $1 WHERE id=$2 AND user_id=$3 RETURNING *;';
-  console.log(req.params.category, req.params.task_d, req.session.userID);
-  db.query(queryStr, [req.params.category, req.params.task_id, req.session.userID])
-    .then(result => {
-      console.log("Edited task's category", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["category"]);
-      res.redirect('/');
+  getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        updateFieldOfTask(userID, req.params.task_id, 'category', req.params.category)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
     });
-  // .catch(e => res.send(e));
 });
 
-//Change description of task: current default to manual
+//Change description of task: currently defaults to manual
 app.post("/:user_id/:task_id", (req, res) => {
-  if (!req.session.userID) {
+  const userID = req.session.userID;
+  const newDescription = 'Snacks';
+  if (!userID) {
     res.redirect('/');
   }
-  console.log("Edit task");
-  const newDescription = 'Snacks';
-  let queryStr = 'UPDATE tasks SET description = $1 WHERE user_id=$2 AND id=$3 RETURNING *;';
-  db.query(queryStr, [newDescription, req.session.userID, req.params.task_id])
-    .then(result => {
-      console.log("Edited task", result.rows[0], "and updated", req.params.task_id, "to", result.rows[0]["description"]);
-      res.redirect('/');
-    })
-    .catch(e => res.send(e));
+  getUserWithId(userID)
+    .then(user => {
+      if (Number(user.id) !== Number(req.params.user_id)) { //check if cookies matches supplied URL
+        res.send('Error: you do not have permission to do this operation.');
+      } else {
+        updateFieldOfTask(userID, req.params.task_id, 'description', newDescription)
+          .then(() => {
+            res.redirect('/');
+          });
+      }
+    });
 });
 
 /* Start of PUT queries */

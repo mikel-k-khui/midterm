@@ -109,7 +109,7 @@ const getUserWithId = function(id) {
  * @param {String} email
  * @param {String} password encrypted
  */
-const login =  function(email, password) {
+const login = function(email, password) {
   return getUserWithEmail(email)
     .then(user => {
       if (bcrypt.compareSync(password, user.password)) {
@@ -121,10 +121,10 @@ const login =  function(email, password) {
 
 /**
  * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
+ * @param {{full_name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser =  function(user) {
+const addUser = function(user) {
   const createdAt = new Date(Date.now());
   const queryString = 'INSERT INTO users (full_name, email, created_at, password) VALUES ($1, $2, $3, $4) RETURNING *;';
   return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password])
@@ -132,13 +132,40 @@ const addUser =  function(user) {
     .catch(err => console.error('query error', err.stack));
 };
 
-const convertGuestIntoUser =  function(user, guestUserID) {
+/**
+ * Add a guest user to the database (cookie already assigned)
+ * @param {{full_name: string, password: string, email: string}} user
+ * @param {guestUserID} The user ID to update
+ * @return {Promise<{}>} A promise to the user.
+ */
+const convertGuestIntoUser = function(user, guestUserID) {
   const createdAt = new Date(Date.now());
   const queryString = 'UPDATE users SET full_name = $1, email = $2, created_at = $3, password = $4 WHERE id = $5 RETURNING *;';
   return db.query(queryString, [user.fullname, user.email, createdAt.toUTCString(), user.password, guestUserID])
     .then(res => res.rows[0])
     .catch(err => console.error('query error', err.stack));
 };
+
+/**
+ * Get active tasks for a corresponding user in a given category
+ * @param {int} user ID
+ * @param {string} category
+ * @return {Promise<{}>} A promise to the user.
+ */
+const getActiveTasksByCategory = function(userid, category) {
+  const queryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
+  return db.query(queryString, [userid, category])
+    .then(res => res.rows)
+    .catch(err => console.error('query error', err.stack));
+};
+
+
+
+
+
+
+
+
 
 
 app.delete("/:user_id/:task_id/", (req, res) => {
@@ -161,30 +188,20 @@ app.delete("/:user_id/:task_id/", (req, res) => {
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
   const userID = req.session.userID;
-  console.log('my user id is', userID);
-
   if (userID) {
-    // const userQueryString = 'SELECT id, full_name FROM users WHERE id=$1;';
-    // console.log("Route for GET/ w user=", req.session.userID);
-    // db.query(userQueryString, [req.session.userID])
     getUserWithId(userID)
       .then(user => {
-        console.log("Index 1st .then", user);
-
         const categories = ['eat', 'buy', 'read', 'watch'];
-        const categoryQueryString = 'SELECT tasks.id, tasks.description, tasks.category, to_char(tasks.last_modified, \'Mon DD, YYYY\') AS last_modified FROM tasks JOIN users on user_id = users.id WHERE users.id = $1 AND category = $2 AND active = true ORDER BY tasks.last_modified DESC;';
+
         let eatArr = [];
         let buyArr = [];
         let readArr = [];
         let watchArr = [];
-        const eat = db.query(categoryQueryString, [user.id, categories[0]])
-          .then(res => eatArr = res.rows);
-        const buy = db.query(categoryQueryString, [user.id, categories[1]])
-          .then(res => buyArr = res.rows);
-        const read = db.query(categoryQueryString, [user.id, categories[2]])
-          .then(res => readArr = res.rows);
-        const watch = db.query(categoryQueryString, [user.id, categories[3]])
-          .then(res => watchArr = res.rows);
+
+        let eat = getActiveTasksByCategory(user.id, categories[0]).then(tasks => eatArr = tasks);
+        let buy = getActiveTasksByCategory(user.id, categories[1]).then(tasks => buyArr = tasks);
+        let read = getActiveTasksByCategory(user.id, categories[2]).then(tasks => readArr = tasks);
+        let watch = getActiveTasksByCategory(user.id, categories[3]).then(tasks => watchArr = tasks);
 
         Promise.all([eat, buy, read, watch]).then(() => {
           const templateVars = {

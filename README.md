@@ -111,13 +111,16 @@ npm i
 npm rebuild node-sass
 ```
 
-7. Start up the localhost server. The default port is 8080.
-Note: nodemon is used, so you should not have to restart your server
+7. Setup your database's schemas.  Sample SQL code is available in the [migrations folder](./migrations/schema.sql).
+*Optional: Seed data is available for both schema in the [seeds folder](./seeds/)*
+
+8. Start up the localhost server. The default port is 8080.
+*Note: nodemon is used, so you should not have to restart your server*
 ```
 npm run local
 ```
 
-8. Open a new browser window and enter the local host with your port.  Chrome is preferred.
+9. Open a new browser window and enter the local host with your port.  Chrome is preferred.
 ```
 http://localhost:8080/
 ```

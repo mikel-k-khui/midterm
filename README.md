@@ -1,5 +1,5 @@
-# Smart To do list
-**Listify** - we categorize your tasks, so you don’t have to.
+# Smart To-do list
+**Listify**—we categorize your tasks, so you don’t have to.
 
 *Our smart algorithm does the heavy lifting for your to-do lists.*
 
@@ -7,36 +7,67 @@
 
 Key features:
 1) Guests receives a cookie after adding a task and can return to register within 7 days. 
-  *This provides the convenience to add tasks immediately without the lengthy sign-up*
-2) Tasks are automatically added to one of the to-do lists based on IAB taxonomy with an easy option to reclass to another to-do list.
-  *The ParallelDot text classification API does the thinking for our users*
-3) Users stays logged in for 7 days without having or after they logout.
+  *This provides the convenience to add tasks immediately without a lengthy sign-up.*
+2) Tasks are automatically added to one of the to-do categories based on IAB taxonomy with an easy option to reclass to another to-do list.
+  *The ParallelDot text classification API does the thinking for our users.*
+3) Guest/login cookies persist for seven days or are cleared upon logout.
 
-### Mobiel View
-#### [Wireframe of landing page - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/01%20desktop_view.png)
-#### [Wireframe of quick edit option - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/01%20desktop_view.png)
-#### [Landing page - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/01%20desktop_view.png)
-#### [Task added - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/02%20tablet_view.png)
-#### [To-do list rendering - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/03%20mobile_view.png)
-#### [Register - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/04%20input_error.png)
-#### [Edit options - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/04%20input_error.png)
+### Mobile View
+
+#### Wireframe of landing page
+!["Wireframe of landing page"](./docs/mobile00a_list_wireframe.png)
+
+#### Wireframe of quick editing
+!["Wireframe of quick edit option"](./docs/mobile00b_change_category.png)
+
+#### Landing page
+!["Landing page"](./docs/mobile01_listify-home.png)
+
+#### Adding a new item
+!["Adding a new item"](./docs/mobile02_listify-new-item.png)
+
+#### Logging in
+!["Logging in"](./docs/mobile03_listify-login.png)
+
+#### Logged in
+!["Logged in"](./docs/mobile04_listify-logged-in.png)
+
+#### Editing an item
+!["Editing an item"](./docs/mobile05_listify-edit.png)
+
 
 ### Desktop View
-#### [Wireframe - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/01%20desktop_view.png)
-#### [Landing page - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/01%20desktop_view.png)
-#### [Task added - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/02%20tablet_view.png)
-#### [To-do list rendering - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/03%20mobile_view.png)
-#### [Register - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/04%20input_error.png)
-#### [Edit options - Listify](https://github.com/mikel-k-khui/tweeter/blob/master/docs/04%20input_error.png)
+
+#### Initial Wireframe
+!["Initial Wireframe"](./docs/desktop00_wire_frame.png)
+
+#### Homepage
+!["Homepage"](./docs/desktop01_listify-home.png)
+
+#### Adding a new item
+!["Adding a new item"](./docs/desktop02_listify-new-item.png)
+
+#### Items saved for guest user
+!["Items saved for guest user"](./docs/desktop03_listify-new-item-guest.png)
+
+#### Registering
+!["Registering"](./docs/desktop04_listify-register.png)
+
+#### Logged In
+!["Logged In"](./docs/desktop05_listify-logged-in.png)
+
+#### Editing an item
+!["Editing an item"](./docs/desktop06_listify-edit.png)
 
 ## Project Setup
 
 ### Dependencies
 
+- node
+- postgresql database
 - bcrypt
 - body-parser
 - chalk
-- cookie-parser
 - cookie-session
 - dotenv
 - ejs
@@ -50,61 +81,50 @@ Key features:
 - spectre.css
 - nodemon *devDependencies*
 
-### Setting Up
+### Installation
 
-A step by step series of examples that tell you how to get a development env running
+1. Clone the repo.
 
-Download the files to your repository
+2. Create a .env file
 
+3. Update the .env file with the postgres database information. For example:
 ```
-1. Create your own empty repo on GitHub
-2. Clone this repository (<mark>do not fork!</mark>)
-  - When cloning, specify a different folder name that is relevant to your project
-3. Remove the git remote: `git remote rm origin`
-4. Add a remote for your origin: `git remote add origin <your github repo URL>`
-5. Push to the new origin: `git push -u origin master`
-```
-
-### Installing
-Create the .env file
-
-Update the .env file with the correct local information
-```
-For example,
- username: `labber` 
- password: `labber` 
- database: `to-do-list`
+DB_HOST=localhost
+DB_USER=user
+DB_PASS=pass
+DB_NAME=database
+API_KEY=<See Step 4 below>
 ```
 
-Request an api key from ParallelDots
+4. Request an api key from ParallelDots and add it to the .env file
 ```
 https://user.apis.paralleldots.com/login 
 ```
 
-Install dependencies:
+5. Install node dependencies:
 ```
 npm i
 ```
 
-Fix to binaries for sass
+6. Fix to binaries for sass
 ```
 npm rebuild node-sass
 ```
 
-Start up the localhost server.  Default port is 8080.
+7. Start up the localhost server. The default port is 8080.
 Note: nodemon is used, so you should not have to restart your server
 ```
 npm run local
 ```
 
-Open a new browser window and enter the local host with your port.  Chrome is preferred.
+8. Open a new browser window and enter the local host with your port.  Chrome is preferred.
 ```
 http://localhost:8080/
 ```
 
 ## Built With
 
-* [Spectre](https://picturepan2.github.io/spectre/) - The web framework used
+* [Spectre](https://picturepan2.github.io/spectre/) - The CSS framework used
 * [ParallelDots](https://www.paralleldots.com/text-classification) - Text Classification function
 * [Postman](https://www.getpostman.com/) - For testing RESTful APIs
 
@@ -118,8 +138,8 @@ As this is a student project there is currently no process for submitting pull r
 
 ## Authors
 
-* **Russell McWhae** - *Initial work* - [Lighthouse Labs](https://github.com/PurpleBooth)
-* **Michael Chui** - *Initial work* - [Lighthouse Labs](https://github.com/PurpleBooth)s
+* [**Russell McWhae**](https://github.com/rmcwhae) - *Initial work*
+* [**Michael Chui**](https://github.com/mikel-k-khui) - *Initial work*
 
 ## License
 
